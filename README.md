@@ -112,6 +112,40 @@ Workflows are stored as JSON files in the `workflows/` directory. The system aut
 - `PARAM_STR_SAMPLER_NAME` - String parameter for sampler name
 - `PARAM_PROMPT` - String parameter for prompt
 
+## Test
+
+1. Start ComfyUI
+   Make sure ComfyUI is running at http://localhost:8188.
+
+2. Build and start the server
+
+```
+# From the comfyui-mcp-server-node directory
+
+# Build
+npm run build
+
+# Start in HTTP mode (for browser/testing)
+npm start
+
+# Or in stdio mode (for MCP clients like Cursor/Claude)
+npm run start:stdio
+```
+
+The server will start at http://127.0.0.1:9000/mcp.
+
+3. Run the test client
+
+```
+# With default prompt
+npx ts-node test_client.ts
+
+# With your own prompt
+npx ts-node test_client.ts -p "a beautiful sunset over mountains"
+```
+
+The test client will connect to the server, check available tools, and run generate_image.
+
 ## Project Structure
 
 ```
