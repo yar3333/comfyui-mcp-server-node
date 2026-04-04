@@ -23,6 +23,7 @@ Complete technical reference for ComfyUI MCP Server (Node.js/TypeScript) tools, 
 Generate images using Stable Diffusion workflows.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   prompt: z.string(),
@@ -37,13 +38,15 @@ z.object({
   denoise: z.number().optional(),
   negative_prompt: z.string().optional(),
   return_inline_preview: z.boolean().optional(),
-})
+});
 ```
 
 **Required Parameters:**
+
 - `prompt` (string): Text description of the image to generate
 
 **Optional Parameters:**
+
 - `seed` (number): Random seed. Auto-generated if not provided.
 - `width` (number): Image width in pixels. Default: 1024
 - `height` (number): Image height in pixels. Default: 1024
@@ -57,6 +60,7 @@ z.object({
 - `return_inline_preview` (boolean): Include thumbnail in response. Default: false
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -72,19 +76,20 @@ z.object({
 
 **User:** "Generate an image of a cat"
 
-**Agent:** *Calls `generate_image(prompt="a cat")` → returns asset_id*
+**Agent:** _Calls `generate_image(prompt="a cat")` → returns asset_id_
 
 ---
 
 **User:** "Create a cyberpunk cityscape, 1024x768, high quality, 30 steps, using the SD XL model"
 
-**Agent:** *Calls `generate_image(prompt="cyberpunk cityscape", width=1024, height=768, model="sd_xl_base_1.0.safetensors", steps=30, cfg=7.5, sampler_name="dpmpp_2m", negative_prompt="blurry, low quality")` → returns asset_id*
+**Agent:** _Calls `generate_image(prompt="cyberpunk cityscape", width=1024, height=768, model="sd_xl_base_1.0.safetensors", steps=30, cfg=7.5, sampler_name="dpmpp_2m", negative_prompt="blurry, low quality")` → returns asset_id_
 
 ### generate_song
 
 Generate audio using AceStep workflows.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   tags: z.string(),
@@ -95,14 +100,16 @@ z.object({
   seconds: z.number().optional(),
   lyrics_strength: z.number().optional(),
   return_inline_preview: z.boolean().optional(),
-})
+});
 ```
 
 **Required Parameters:**
+
 - `tags` (string): Comma-separated descriptive tags (e.g., "electronic, ambient")
 - `lyrics` (string): Full lyric text
 
 **Optional Parameters:**
+
 - `seed` (number): Random seed. Auto-generated if not provided.
 - `steps` (number): Number of sampling steps. Default: 20
 - `cfg` (number): Classifier-free guidance scale. Default: 7.0
@@ -110,6 +117,7 @@ z.object({
 - `lyrics_strength` (number): Lyrics influence (0.0-1.0). Default: 0.7
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -128,16 +136,18 @@ z.object({
 View generated images inline in chat (thumbnail preview only).
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   asset_id: z.string(),
   mode: z.string().optional(),
   max_dim: z.number().optional(),
   max_b64_chars: z.number().optional(),
-})
+});
 ```
 
 **Parameters:**
+
 - `asset_id` (string): Asset ID returned from generation tools
 - `mode` (string): Display mode - `"thumb"` (default) or `"metadata"`
 - `max_dim` (number): Maximum dimension in pixels. Default: 1024
@@ -146,11 +156,13 @@ z.object({
 **Returns:**
 
 **Mode: "thumb"** (default):
+
 - Returns markdown image with base64 WebP data URI
 - WebP format, automatically downscaled and optimized
 - Size constrained to fit within `max_b64_chars` limit
 
 **Mode: "metadata"**:
+
 ```json
 {
   "content": [
@@ -163,10 +175,12 @@ z.object({
 ```
 
 **Supported Types:**
+
 - Images only: PNG, JPEG, WebP, GIF
 - Audio/video assets return error: use `asset_url` directly
 
 **Error Responses:**
+
 ```json
 {
   "content": [{ "type": "text", "text": "Asset not found: uuid-string" }],
@@ -186,14 +200,15 @@ z.object({
 **User:** "Generate an image of a cat and show it to me"
 
 **Agent:**
-- *Calls `generate_image(prompt="a cat")` → gets asset_id*
-- *Calls `view_image(asset_id="...")` → displays thumbnail inline*
+
+- _Calls `generate_image(prompt="a cat")` → gets asset_id_
+- _Calls `view_image(asset_id="...")` → displays thumbnail inline_
 
 ---
 
 **User:** "What are the dimensions of that last image I generated?"
 
-**Agent:** *Calls `view_image(asset_id="...", mode="metadata")` → returns width, height, size, etc.*
+**Agent:** _Calls `view_image(asset_id="...", mode="metadata")` → returns width, height, size, etc._
 
 ## Job Management Tools
 
@@ -202,11 +217,13 @@ z.object({
 Check the current state of the ComfyUI job queue.
 
 **Input Schema (Zod v4):**
+
 ```typescript
-z.object({})
+z.object({});
 ```
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -219,6 +236,7 @@ z.object({})
 ```
 
 **Use Cases:**
+
 - Check if ComfyUI is busy before submitting new jobs
 - Monitor queue depth for async awareness
 - Determine if a job is still queued vs running
@@ -227,23 +245,26 @@ z.object({})
 
 **User:** "Is ComfyUI busy right now? How many jobs are queued?"
 
-**Agent:** *Calls `get_queue_status()` → reports queue depth and running jobs*
+**Agent:** _Calls `get_queue_status()` → reports queue depth and running jobs_
 
 ### get_job
 
 Poll the completion status of a specific job by prompt ID.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   prompt_id: z.string(),
-})
+});
 ```
 
 **Parameters:**
+
 - `prompt_id` (string): Prompt ID returned from generation tools
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -256,6 +277,7 @@ z.object({
 ```
 
 **Status Values:**
+
 - `"pending"`: Job is queued but not yet running
 - `"running"`: Job is currently executing
 - `"completed"`: Job finished successfully
@@ -266,35 +288,39 @@ z.object({
 **User:** "Generate a complex scene with 50 steps, and let me know when it's done"
 
 **Agent:**
-- *Calls `generate_image(prompt="complex scene", steps=50)` → gets prompt_id*
-- *Periodically calls `get_job(prompt_id="...")` to check status*
-- *When status is "completed", informs user and optionally calls `view_image()`*
+
+- _Calls `generate_image(prompt="complex scene", steps=50)` → gets prompt_id_
+- _Periodically calls `get_job(prompt_id="...")` to check status_
+- _When status is "completed", informs user and optionally calls `view_image()`_
 
 ---
 
 **User:** "Is that image generation I started earlier finished yet?"
 
-**Agent:** *Calls `get_job(prompt_id="...")` → reports current status (pending/running/completed/error)*
+**Agent:** _Calls `get_job(prompt_id="...")` → reports current status (pending/running/completed/error)_
 
 ### list_assets
 
 Browse recently generated assets with optional filtering.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   limit: z.number().optional(),
   workflow_id: z.string().optional(),
   session_id: z.string().optional(),
-})
+});
 ```
 
 **Parameters:**
+
 - `limit` (number, optional): Maximum number of assets to return. Default: 100
 - `workflow_id` (string, optional): Filter by workflow ID (e.g., `"generate_image"`)
 - `session_id` (string, optional): Filter by session ID for conversation isolation
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -307,6 +333,7 @@ z.object({
 ```
 
 **Use Cases:**
+
 - Browse recent generations for AI agent memory
 - Filter by workflow to see only images or only audio
 - Filter by session for conversation-scoped asset isolation
@@ -315,29 +342,32 @@ z.object({
 
 **User:** "Show me the last 5 images I generated"
 
-**Agent:** *Calls `list_assets(workflow_id="generate_image", limit=5)` → displays list of recent images*
+**Agent:** _Calls `list_assets(workflow_id="generate_image", limit=5)` → displays list of recent images_
 
 ---
 
 **User:** "What assets have we created in this conversation?"
 
-**Agent:** *Calls `list_assets(session_id="current-session-id")` → lists assets from current session*
+**Agent:** _Calls `list_assets(session_id="current-session-id")` → lists assets from current session_
 
 ### get_asset_metadata
 
 Get complete provenance and parameters for a specific asset.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   asset_id: z.string(),
-})
+});
 ```
 
 **Parameters:**
+
 - `asset_id` (string): Asset ID returned from generation tools
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -350,11 +380,13 @@ z.object({
 ```
 
 **Key Fields:**
+
 - `submitted_workflow`: Exact workflow JSON that was submitted (enables `regenerate`)
 - `comfy_history`: Complete ComfyUI execution history
 - `created_at` / `expires_at`: Asset lifecycle timestamps
 
 **Use Cases:**
+
 - Inspect exact parameters used for an asset
 - Retrieve workflow data for regeneration
 - Debug generation issues with full provenance
@@ -363,29 +395,32 @@ z.object({
 
 **User:** "What parameters were used to generate that last image?"
 
-**Agent:** *Calls `get_asset_metadata(asset_id="...")` → retrieves and reports workflow parameters, dimensions, etc.*
+**Agent:** _Calls `get_asset_metadata(asset_id="...")` → retrieves and reports workflow parameters, dimensions, etc._
 
 ---
 
 **User:** "I want to regenerate that image but with different settings - what were the original settings?"
 
-**Agent:** *Calls `get_asset_metadata(asset_id="...")` → shows submitted_workflow data for regeneration*
+**Agent:** _Calls `get_asset_metadata(asset_id="...")` → shows submitted_workflow data for regeneration_
 
 ### cancel_job
 
 Cancel a queued or running job.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   prompt_id: z.string(),
-})
+});
 ```
 
 **Parameters:**
+
 - `prompt_id` (string): Prompt ID of the job to cancel
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -398,6 +433,7 @@ z.object({
 ```
 
 **Error Response:**
+
 ```json
 {
   "content": [{ "type": "text", "text": "Error: Failed to cancel prompt" }],
@@ -410,25 +446,28 @@ z.object({
 **User:** "I started a long image generation task earlier, but I want to cancel it now"
 
 **Agent:**
-- *Calls `get_queue_status()` to find running jobs*
-- *Calls `cancel_job(prompt_id="...")` to cancel the job*
-- *Confirms cancellation to user*
+
+- _Calls `get_queue_status()` to find running jobs_
+- _Calls `cancel_job(prompt_id="...")` to cancel the job_
+- _Confirms cancellation to user_
 
 ### regenerate
 
 Regenerate an existing asset with optional parameter overrides.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   asset_id: z.string(),
   seed: z.number().optional(),
   return_inline_preview: z.boolean().optional(),
   param_overrides: z.record(z.string(), z.any()).optional(),
-})
+});
 ```
 
 **Parameters:**
+
 - `asset_id` (string): Asset ID to regenerate
 - `seed` (number, optional): New random seed
 - `return_inline_preview` (boolean, optional): Include thumbnail in response. Default: false
@@ -438,12 +477,14 @@ z.object({
 Same schema as generation tools (new asset with new `asset_id`)
 
 **Behavior:**
+
 - Uses stored `submitted_workflow` from original asset
 - Applies `param_overrides` to modify specific parameters
 - All other parameters remain unchanged from original generation
 - Returns a new asset (original is not modified)
 
 **Error Response:**
+
 ```json
 {
   "content": [{ "type": "text", "text": "No workflow found for this asset" }],
@@ -455,23 +496,23 @@ Same schema as generation tools (new asset with new `asset_id`)
 
 **User:** "Generate a sunset image with 20 steps"
 
-**Agent:** *Calls `generate_image(prompt="a sunset", steps=20)` → gets asset_id*
+**Agent:** _Calls `generate_image(prompt="a sunset", steps=20)` → gets asset_id_
 
 **User:** "Now regenerate that same image but with higher quality - 30 steps and cfg 10"
 
-**Agent:** *Calls `regenerate(asset_id="...", param_overrides={"steps": 30, "cfg": 10.0})` → creates new version*
+**Agent:** _Calls `regenerate(asset_id="...", param_overrides={"steps": 30, "cfg": 10.0})` → creates new version_
 
 ---
 
 **User:** "Regenerate that image but change the prompt to 'a beautiful sunset, oil painting style'"
 
-**Agent:** *Calls `regenerate(asset_id="...", param_overrides={"prompt": "a beautiful sunset, oil painting style"})` → creates variation*
+**Agent:** _Calls `regenerate(asset_id="...", param_overrides={"prompt": "a beautiful sunset, oil painting style"})` → creates variation_
 
 ---
 
 **User:** "Generate a new variation of that image with a different random seed"
 
-**Agent:** *Calls `regenerate(asset_id="...", seed=-1)` → creates new variation with different seed*
+**Agent:** _Calls `regenerate(asset_id="...", seed=-1)` → creates new variation with different seed_
 
 ## Configuration Tools
 
@@ -480,17 +521,19 @@ Same schema as generation tools (new asset with new `asset_id`)
 List all available checkpoint models in ComfyUI.
 
 **Input Schema (Zod v4):**
+
 ```typescript
-z.object({})
+z.object({});
 ```
 
 **Returns:**
+
 ```json
 {
   "content": [
     {
       "type": "text",
-      "text": "[\n  \"v1-5-pruned-emaonly.ckpt\",\n  \"sd_xl_base_1.0.safetensors\",\n  ...\n]"
+      "text": "[\n  \"v1-5-pruned-emaonly.safetensors\",\n  \"sd_xl_base_1.0.safetensors\",\n  ...\n]"
     }
   ]
 }
@@ -500,24 +543,26 @@ z.object({})
 
 **User:** "What models are available in ComfyUI?"
 
-**Agent:** *Calls `list_models()` → reports available checkpoint models*
+**Agent:** _Calls `list_models()` → reports available checkpoint models_
 
 ---
 
 **User:** "I want to use a different model - show me what's available"
 
-**Agent:** *Calls `list_models()` → lists models, user selects one, agent uses it in generation*
+**Agent:** _Calls `list_models()` → lists models, user selects one, agent uses it in generation_
 
 ### get_defaults
 
 Get current effective defaults for image, audio, and video generation.
 
 **Input Schema (Zod v4):**
+
 ```typescript
-z.object({})
+z.object({});
 ```
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -533,35 +578,38 @@ z.object({})
 
 **User:** "What are the current default settings for image generation?"
 
-**Agent:** *Calls `get_defaults()` → reports current defaults (width, height, model, steps, etc.)*
+**Agent:** _Calls `get_defaults()` → reports current defaults (width, height, model, steps, etc.)_
 
 ---
 
 **User:** "Show me all the default settings"
 
-**Agent:** *Calls `get_defaults()` → shows defaults for image, audio, and video generation*
+**Agent:** _Calls `get_defaults()` → shows defaults for image, audio, and video generation_
 
 ### set_defaults
 
 Set runtime defaults for image, audio, and/or video generation.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   image: z.record(z.string(), z.any()).optional(),
   audio: z.record(z.string(), z.any()).optional(),
   video: z.record(z.string(), z.any()).optional(),
   persist: z.boolean().optional(),
-})
+});
 ```
 
 **Parameters:**
+
 - `image` (object): Default values for image generation
 - `audio` (object): Default values for audio generation
 - `video` (object): Default values for video generation
 - `persist` (boolean): If true, write to config file. Default: false
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -577,13 +625,13 @@ z.object({
 
 **User:** "Set the default image size to 1024x1024 for this session"
 
-**Agent:** *Calls `set_defaults(image={"width": 1024, "height": 1024})` → sets ephemeral defaults*
+**Agent:** _Calls `set_defaults(image={"width": 1024, "height": 1024})` → sets ephemeral defaults_
 
 ---
 
 **User:** "Save the SD XL model as the default image model permanently"
 
-**Agent:** *Calls `set_defaults(image={"model": "sd_xl_base_1.0.safetensors"}, persist=true)` → saves to config file*
+**Agent:** _Calls `set_defaults(image={"model": "sd_xl_base_1.0.safetensors"}, persist=true)` → saves to config file_
 
 ## Workflow Tools
 
@@ -592,11 +640,13 @@ z.object({
 List all available workflows in the workflow directory.
 
 **Input Schema (Zod v4):**
+
 ```typescript
-z.object({})
+z.object({});
 ```
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -612,35 +662,38 @@ z.object({})
 
 **User:** "What workflows are available?"
 
-**Agent:** *Calls `list_workflows()` → lists all available workflows with descriptions and parameters*
+**Agent:** _Calls `list_workflows()` → lists all available workflows with descriptions and parameters_
 
 ---
 
 **User:** "Show me what custom workflows I can run"
 
-**Agent:** *Calls `list_workflows()` → displays workflow catalog with available inputs*
+**Agent:** _Calls `list_workflows()` → displays workflow catalog with available inputs_
 
 ### run_workflow
 
 Run any saved ComfyUI workflow with constrained parameter overrides.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   workflow_id: z.string(),
   overrides: z.record(z.string(), z.any()).optional(),
   options: z.record(z.string(), z.any()).optional(),
   return_inline_preview: z.boolean().optional(),
-})
+});
 ```
 
 **Parameters:**
+
 - `workflow_id` (string): Workflow ID (filename stem, e.g., "generate_image")
 - `overrides` (object): Parameter overrides
 - `options` (object): Reserved for future use
 - `return_inline_preview` (boolean): Include thumbnail. Default: false
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -653,6 +706,7 @@ z.object({
 ```
 
 **Error Response:**
+
 ```json
 {
   "content": [{ "type": "text", "text": "Workflow not found: invalid_workflow" }],
@@ -664,19 +718,20 @@ z.object({
 
 **User:** "Run the generate_image workflow with a custom prompt and 30 steps"
 
-**Agent:** *Calls `run_workflow(workflow_id="generate_image", overrides={"prompt": "...", "steps": 30})` → executes workflow*
+**Agent:** _Calls `run_workflow(workflow_id="generate_image", overrides={"prompt": "...", "steps": 30})` → executes workflow_
 
 ---
 
 **User:** "Use the generate_image workflow to create a 1024x1024 image of a cat with the SD XL model"
 
-**Agent:** *Calls `run_workflow(workflow_id="generate_image", overrides={"prompt": "a cat", "width": 1024, "height": 1024, "model": "sd_xl_base_1.0.safetensors"})` → executes workflow*
+**Agent:** _Calls `run_workflow(workflow_id="generate_image", overrides={"prompt": "a cat", "width": 1024, "height": 1024, "model": "sd_xl_base_1.0.safetensors"})` → executes workflow_
 
 ## Publish Tools
 
 Tools for safely publishing ComfyUI-generated assets to web project directories with automatic compression and manifest management.
 
 **Key Concepts:**
+
 - **Session-scoped assets**: `asset_id`s are valid only for the current server session; restart invalidates them
 - **Zero-config in common cases**: Publish directory auto-detected (`public/gen`, `static/gen`, or `assets/gen`)
 - **Two modes**: Demo mode (explicit filename) and Library mode (auto-generated filename with manifest)
@@ -687,11 +742,13 @@ Tools for safely publishing ComfyUI-generated assets to web project directories 
 Get publish configuration and status information. Use this to debug configuration issues and verify setup before publishing.
 
 **Input Schema (Zod v4):**
+
 ```typescript
-z.object({})
+z.object({});
 ```
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -704,6 +761,7 @@ z.object({})
 ```
 
 **Field Descriptions:**
+
 - `project_root`: Detected project root directory and detection method
 - `publish_root`: Publish directory path
 - `comfyui_output_root`: ComfyUI output root path (if configured)
@@ -713,33 +771,37 @@ z.object({})
 
 **User:** "Check if the publish system is ready to use"
 
-**Agent:** *Calls `get_publish_info()` → reports status, project root, publish directory, ComfyUI output root*
+**Agent:** _Calls `get_publish_info()` → reports status, project root, publish directory, ComfyUI output root_
 
 ---
 
 **User:** "I'm getting an error about ComfyUI output root not being found"
 
 **Agent:**
-- *Calls `get_publish_info()` → sees status "needs_comfyui_root"*
-- *Suggests using `set_comfyui_output_root()` with the path*
-- *User provides path: "E:/comfyui-desktop/output"*
-- *Agent calls `set_comfyui_output_root("E:/comfyui-desktop/output")` → configures and persists*
+
+- _Calls `get_publish_info()` → sees status "needs_comfyui_root"_
+- _Suggests using `set_comfyui_output_root()` with the path_
+- _User provides path: "E:/comfyui-desktop/output"_
+- _Agent calls `set_comfyui_output_root("E:/comfyui-desktop/output")` → configures and persists_
 
 ### set_comfyui_output_root
 
 Set ComfyUI output root directory in persistent configuration. Recommended for Comfy Desktop and nonstandard installs.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   path: z.string(),
-})
+});
 ```
 
 **Required Parameters:**
+
 - `path` (string): Absolute or relative path to ComfyUI output directory (e.g., `"E:/comfyui-desktop/output"` or `"/opt/ComfyUI/output"`)
 
 **Returns (Success):**
+
 ```json
 {
   "content": [
@@ -752,6 +814,7 @@ z.object({
 ```
 
 **Returns (Error):**
+
 ```json
 {
   "content": [{ "type": "text", "text": "ComfyUI output root not configured" }],
@@ -763,13 +826,14 @@ z.object({
 
 **User:** "Set the ComfyUI output directory to E:/comfyui-desktop/output"
 
-**Agent:** *Calls `set_comfyui_output_root(path="E:/comfyui-desktop/output")` → configures and persists*
+**Agent:** _Calls `set_comfyui_output_root(path="E:/comfyui-desktop/output")` → configures and persists_
 
 ### publish_asset
 
 Publish a generated asset to a web project directory with optional compression.
 
 **Input Schema (Zod v4):**
+
 ```typescript
 z.object({
   asset_id: z.string(),
@@ -778,20 +842,23 @@ z.object({
   web_optimize: z.boolean().optional(),
   max_bytes: z.number().optional(),
   overwrite: z.boolean().optional(),
-})
+});
 ```
 
 **Required Parameters:**
+
 - `asset_id` (string): Asset ID to publish
 - `target_filename` (string): Target filename (e.g., `"hero.webp"`)
 
 **Optional Parameters:**
+
 - `manifest_key` (string): Key for manifest.json (enables library mode)
 - `web_optimize` (boolean): Optimize for web (WebP compression). Default: false
 - `max_bytes` (number): Maximum file size for web optimization
 - `overwrite` (boolean): Overwrite existing file. Default: false
 
 **Returns:**
+
 ```json
 {
   "content": [
@@ -804,6 +871,7 @@ z.object({
 ```
 
 **Error Responses:**
+
 ```json
 {
   "content": [{ "type": "text", "text": "Asset not found: uuid-string" }],
@@ -823,54 +891,57 @@ z.object({
 **User:** "Publish that image as hero.webp"
 
 **Agent:**
-- *Calls `publish_asset(asset_id="...", target_filename="hero.webp")` → publishes asset*
+
+- _Calls `publish_asset(asset_id="...", target_filename="hero.webp")` → publishes asset_
 
 ---
 
 **User:** "Publish that as hero.webp, optimize for web, and add it to the manifest with key 'hero'"
 
 **Agent:**
-- *Calls `publish_asset(asset_id="...", target_filename="hero.webp", manifest_key="hero", web_optimize=true)` → publishes and updates manifest*
+
+- _Calls `publish_asset(asset_id="...", target_filename="hero.webp", manifest_key="hero", web_optimize=true)` → publishes and updates manifest_
 
 ## Parameters
 
 ### Common Parameter Types
 
-| Type | Zod Schema | Description |
-|------|------------|-------------|
-| string | `z.string()` | Text value |
-| number | `z.number()` | Integer or float |
-| boolean | `z.boolean()` | true/false |
-| object | `z.record(z.string(), z.any())` | Key-value pairs |
-| optional | `.optional()` | Can be omitted |
+| Type     | Zod Schema                      | Description      |
+| -------- | ------------------------------- | ---------------- |
+| string   | `z.string()`                    | Text value       |
+| number   | `z.number()`                    | Integer or float |
+| boolean  | `z.boolean()`                   | true/false       |
+| object   | `z.record(z.string(), z.any())` | Key-value pairs  |
+| optional | `.optional()`                   | Can be omitted   |
 
 ### Workflow Parameters
 
 Workflow parameters are extracted from `PARAM_*` placeholders:
 
-| Placeholder | Type | Required |
-|-------------|------|----------|
-| `PARAM_PROMPT` | string | Yes |
-| `PARAM_INT_SEED` | number | No |
-| `PARAM_INT_STEPS` | number | No |
-| `PARAM_FLOAT_CFG` | number | No |
-| `PARAM_STR_SAMPLER_NAME` | string | No |
-| `PARAM_STR_SCHEDULER` | string | No |
-| `PARAM_FLOAT_DENOISE` | number | No |
-| `PARAM_MODEL` | string | No |
-| `PARAM_INT_WIDTH` | number | No |
-| `PARAM_INT_HEIGHT` | number | No |
-| `PARAM_NEGATIVE_PROMPT` | string | No |
-| `PARAM_TAGS` | string | Yes (for generate_song) |
-| `PARAM_LYRICS` | string | Yes (for generate_song) |
-| `PARAM_FLOAT_LYRICS_STRENGTH` | number | No |
-| `PARAM_INT_SECONDS` | number | No |
+| Placeholder                   | Type   | Required                |
+| ----------------------------- | ------ | ----------------------- |
+| `PARAM_PROMPT`                | string | Yes                     |
+| `PARAM_INT_SEED`              | number | No                      |
+| `PARAM_INT_STEPS`             | number | No                      |
+| `PARAM_FLOAT_CFG`             | number | No                      |
+| `PARAM_STR_SAMPLER_NAME`      | string | No                      |
+| `PARAM_STR_SCHEDULER`         | string | No                      |
+| `PARAM_FLOAT_DENOISE`         | number | No                      |
+| `PARAM_MODEL`                 | string | No                      |
+| `PARAM_INT_WIDTH`             | number | No                      |
+| `PARAM_INT_HEIGHT`            | number | No                      |
+| `PARAM_NEGATIVE_PROMPT`       | string | No                      |
+| `PARAM_TAGS`                  | string | Yes (for generate_song) |
+| `PARAM_LYRICS`                | string | Yes (for generate_song) |
+| `PARAM_FLOAT_LYRICS_STRENGTH` | number | No                      |
+| `PARAM_INT_SECONDS`           | number | No                      |
 
 ## Return Values
 
 All tools return responses in the following format:
 
 **Success Response:**
+
 ```json
 {
   "content": [
@@ -883,6 +954,7 @@ All tools return responses in the following format:
 ```
 
 **Error Response:**
+
 ```json
 {
   "content": [
@@ -899,18 +971,19 @@ All tools return responses in the following format:
 
 ### Common Error Messages
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `Asset not found: ...` | Asset expired or invalid | Regenerate the asset or use a valid asset_id |
-| `Workflow not found: ...` | Workflow file doesn't exist | Check workflow directory and filename |
-| `Failed to queue workflow: ...` | ComfyUI unavailable or error | Ensure ComfyUI is running and accessible |
-| `Workflow execution failed: ...` | ComfyUI workflow error | Check ComfyUI logs for details |
-| `Source path must be within ComfyUI output root` | Publish path validation failed | Configure ComfyUI output root correctly |
-| `Target file already exists: ...` | File exists and overwrite=false | Use `overwrite=true` or different filename |
+| Error                                            | Cause                           | Solution                                     |
+| ------------------------------------------------ | ------------------------------- | -------------------------------------------- |
+| `Asset not found: ...`                           | Asset expired or invalid        | Regenerate the asset or use a valid asset_id |
+| `Workflow not found: ...`                        | Workflow file doesn't exist     | Check workflow directory and filename        |
+| `Failed to queue workflow: ...`                  | ComfyUI unavailable or error    | Ensure ComfyUI is running and accessible     |
+| `Workflow execution failed: ...`                 | ComfyUI workflow error          | Check ComfyUI logs for details               |
+| `Source path must be within ComfyUI output root` | Publish path validation failed  | Configure ComfyUI output root correctly      |
+| `Target file already exists: ...`                | File exists and overwrite=false | Use `overwrite=true` or different filename   |
 
 ### ComfyUI Connection Errors
 
 If ComfyUI is not available, the server will:
+
 1. Retry connection with exponential backoff (2s → 4s → 8s → 16s)
 2. Exit after 5 failed attempts
 3. Require manual restart after ComfyUI is started
@@ -919,32 +992,32 @@ If ComfyUI is not available, the server will:
 
 ### Asset Limits
 
-| Limit | Value | Description |
-|-------|-------|-------------|
-| Asset TTL | 24 hours | Default expiration time |
-| Inline preview size | ~100KB | Base64 character budget |
-| Thumbnail max dimension | 1024px | Default max dimension |
+| Limit                   | Value    | Description             |
+| ----------------------- | -------- | ----------------------- |
+| Asset TTL               | 24 hours | Default expiration time |
+| Inline preview size     | ~100KB   | Base64 character budget |
+| Thumbnail max dimension | 1024px   | Default max dimension   |
 
 ### Workflow Limits
 
-| Limit | Value | Description |
-|-------|-------|-------------|
-| Poll attempts | 30 | Maximum wait time ~30 seconds |
-| Poll interval | 1 second | Between each attempt |
-| Request timeout | 30 seconds | For ComfyUI API calls |
+| Limit           | Value      | Description                   |
+| --------------- | ---------- | ----------------------------- |
+| Poll attempts   | 30         | Maximum wait time ~30 seconds |
+| Poll interval   | 1 second   | Between each attempt          |
+| Request timeout | 30 seconds | For ComfyUI API calls         |
 
 ### Image Processing Limits
 
-| Limit | Value | Description |
-|-------|-------|-------------|
-| Quality ladder | 70 → 55 → 40 | WebP quality levels |
-| Max base64 chars | 100,000 | Default character budget |
-| Max dimension | 1024px | Default resize limit |
+| Limit            | Value        | Description              |
+| ---------------- | ------------ | ------------------------ |
+| Quality ladder   | 70 → 55 → 40 | WebP quality levels      |
+| Max base64 chars | 100,000      | Default character budget |
+| Max dimension    | 1024px       | Default resize limit     |
 
 ### Publish Limits
 
-| Limit | Value | Description |
-|-------|-------|-------------|
-| Quality ladder | 85 → 70 → 55 → 40 → 35 | WebP optimization |
-| Downscale factors | 1.0 → 0.75 → 0.5 | Size reduction |
-| Path validation | Required | Source and target paths checked |
+| Limit             | Value                  | Description                     |
+| ----------------- | ---------------------- | ------------------------------- |
+| Quality ladder    | 85 → 70 → 55 → 40 → 35 | WebP optimization               |
+| Downscale factors | 1.0 → 0.75 → 0.5       | Size reduction                  |
+| Path validation   | Required               | Source and target paths checked |

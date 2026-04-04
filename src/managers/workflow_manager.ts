@@ -32,7 +32,7 @@ const PLACEHOLDER_DESCRIPTIONS: Record<string, string> = {
   seed: "Random seed for image generation. If not provided, a random seed will be generated.",
   width: "Image width in pixels. Default: 512.",
   height: "Image height in pixels. Default: 512.",
-  model: "Checkpoint model name (e.g., 'v1-5-pruned-emaonly.ckpt', 'sd_xl_base_1.0.safetensors').",
+  model: "Checkpoint model name (e.g., 'v1-5-pruned-emaonly.safetensors', 'sd_xl_base_1.0.safetensors').",
   steps: "Number of sampling steps. Higher = better quality but slower. Default: 20.",
   cfg: "Classifier-free guidance scale. Higher = more adherence to prompt. Default: 8.0.",
   sampler_name: "Sampling method (e.g., 'euler', 'dpmpp_2m', 'ddim'). Default: 'euler'.",
@@ -468,6 +468,11 @@ export class WorkflowManager {
 
       // Coerce type
       value = this._coerceType(value, param.annotation);
+
+      // Special handling for seed: -1 means random seed
+      if (param.name === "seed" && typeof value === "number" && value < 0) {
+        value = Math.floor(Math.random() * 2 ** 32);
+      }
 
       // Apply to all bindings
       for (const binding of param.bindings) {

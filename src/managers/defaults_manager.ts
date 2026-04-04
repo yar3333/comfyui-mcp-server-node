@@ -43,7 +43,8 @@ export class DefaultsManager {
       sampler_name: "euler",
       scheduler: "normal",
       denoise: 1.0,
-      model: "v1-5-pruned-emaonly.ckpt",
+      model: "v1-5-pruned-emaonly.safetensors",
+      seed: -1,
       negative_prompt: "text, watermark",
     },
     audio: {
@@ -55,6 +56,7 @@ export class DefaultsManager {
       seconds: 60,
       lyrics_strength: 0.99,
       model: "ace_step_v1_3.5b.safetensors",
+      seed: -1,
     },
     video: {
       width: 1280,
@@ -112,14 +114,12 @@ export class DefaultsManager {
     try {
       const models = await this.client.getAvailableModels();
       if (models.length > 0) {
-        // Don't override hardcoded model defaults - let them stay as-is
-        // Only set if hardcoded model doesn't exist
-        const imageModel = this.hardcodedDefaults.image.model;
-        if (imageModel && models.includes(imageModel)) {
-          // Good, the hardcoded model exists
-        } else if (imageModel && !models.includes(imageModel)) {
-          // Mark as invalid
-          this.invalidModels.image = imageModel;
+        // Set model from first available if hardcoded default is null
+        if (this.hardcodedDefaults.image.model === null) {
+          this.hardcodedDefaults.image.model = models[0];
+        }
+        if (this.hardcodedDefaults.audio.model === null) {
+          this.hardcodedDefaults.audio.model = models[0];
         }
       }
     } catch (error) {
