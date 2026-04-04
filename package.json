@@ -1,0 +1,43 @@
+{
+  "name": "comfyui-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server that bridges AI agents to local ComfyUI instance",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "start:stdio": "node dist/server.js --stdio",
+    "dev": "ts-node src/server.ts",
+    "dev:stdio": "ts-node src/server.ts --stdio",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "mcp",
+    "comfyui",
+    "ai",
+    "image-generation",
+    "stable-diffusion"
+  ],
+  "author": "yar3333",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.7.0",
+    "sharp": "^0.33.0",
+    "uuid": "^10.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.6.0",
+    "ts-node": "^10.9.0",
+    "rimraf": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
