@@ -39,7 +39,7 @@ describe("PublishManager", () => {
   describe("publishAsset", () => {
     it("should publish asset to target path", async () => {
       const sourceFile = path.join(comfyuiOutput, "ComfyUI_00001_.png");
-      fs.writeFileSync(sourceFile, createMockImageBuffer());
+      fs.writeFileSync(sourceFile, await createMockImageBuffer());
 
       const result = await manager.publishAsset(sourceFile, "hero.webp");
 
@@ -53,7 +53,7 @@ describe("PublishManager", () => {
 
     it("should throw error if target already exists and overwrite is false", async () => {
       const sourceFile = path.join(comfyuiOutput, "ComfyUI_00001_.png");
-      fs.writeFileSync(sourceFile, createMockImageBuffer());
+      fs.writeFileSync(sourceFile, await createMockImageBuffer());
 
       await manager.publishAsset(sourceFile, "test.webp", undefined, false, undefined, false);
 
@@ -62,7 +62,7 @@ describe("PublishManager", () => {
 
     it("should overwrite if overwrite is true", async () => {
       const sourceFile = path.join(comfyuiOutput, "ComfyUI_00001_.png");
-      fs.writeFileSync(sourceFile, createMockImageBuffer());
+      fs.writeFileSync(sourceFile, await createMockImageBuffer());
 
       await manager.publishAsset(sourceFile, "test.webp", undefined, false, undefined, false);
       const result = await manager.publishAsset(sourceFile, "test.webp", undefined, false, undefined, true);
@@ -72,7 +72,7 @@ describe("PublishManager", () => {
 
     it("should update manifest when manifest_key is provided", async () => {
       const sourceFile = path.join(comfyuiOutput, "ComfyUI_00001_.png");
-      fs.writeFileSync(sourceFile, createMockImageBuffer());
+      fs.writeFileSync(sourceFile, await createMockImageBuffer());
 
       await manager.publishAsset(sourceFile, "hero.webp", "site-hero");
 
@@ -85,7 +85,7 @@ describe("PublishManager", () => {
 
     it("should apply web optimization when requested", async () => {
       const sourceFile = path.join(comfyuiOutput, "ComfyUI_00001_.png");
-      fs.writeFileSync(sourceFile, createMockImageBuffer());
+      fs.writeFileSync(sourceFile, await createMockImageBuffer());
 
       const result = await manager.publishAsset(sourceFile, "optimized.webp", undefined, true, 100000);
 
@@ -98,16 +98,16 @@ describe("PublishManager", () => {
   describe("path validation", () => {
     it("should reject source paths outside comfyui output root", async () => {
       const outsideFile = path.join(tempDir, "outside.png");
-      fs.writeFileSync(outsideFile, createMockImageBuffer());
+      fs.writeFileSync(outsideFile, await createMockImageBuffer());
 
       await expect(manager.publishAsset(outsideFile, "test.webp")).rejects.toThrow(
         /must be within ComfyUI output root/,
       );
     });
 
-    it("should reject target paths outside publish root", () => {
+    it("should reject target paths outside publish root", async () => {
       const sourceFile = path.join(comfyuiOutput, "ComfyUI_00001_.png");
-      fs.writeFileSync(sourceFile, createMockImageBuffer());
+      fs.writeFileSync(sourceFile, await createMockImageBuffer());
 
       // This should still work since it's within publish root
       expect(() => manager.publishAsset(sourceFile, "test.webp")).not.toThrow();

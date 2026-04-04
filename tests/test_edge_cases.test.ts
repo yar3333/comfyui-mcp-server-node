@@ -15,7 +15,7 @@ describe("Asset Processor", () => {
 
   describe("encodePreviewForMcp", () => {
     it("should encode small image within budget", async () => {
-      const buffer = createMockImageBuffer();
+      const buffer = await createMockImageBuffer();
       const result = await encodePreviewForMcp(buffer, 512);
 
       expect(result.base64).toBeDefined();
@@ -82,7 +82,7 @@ describe("Asset Processor", () => {
 
   describe("createThumbnail", () => {
     it("should create thumbnail of specified size", async () => {
-      const buffer = createMockImageBuffer();
+      const buffer = await createMockImageBuffer();
       const thumbnail = await createThumbnail(buffer, 64);
 
       const metadata = await sharp(thumbnail).metadata();
@@ -91,7 +91,7 @@ describe("Asset Processor", () => {
     });
 
     it("should use default size of 128", async () => {
-      const buffer = createMockImageBuffer();
+      const buffer = await createMockImageBuffer();
       const thumbnail = await createThumbnail(buffer);
 
       const metadata = await sharp(thumbnail).metadata();
@@ -100,15 +100,15 @@ describe("Asset Processor", () => {
   });
 
   describe("getImageMetadata", () => {
-    it("should detect PNG format", () => {
-      const buffer = createMockImageBuffer();
+    it("should detect PNG format", async () => {
+      const buffer = await createMockImageBuffer();
       const metadata = getImageMetadata(buffer);
 
       expect(metadata.format).toBe("png");
     });
 
-    it("should return correct size", () => {
-      const buffer = createMockImageBuffer();
+    it("should return correct size", async () => {
+      const buffer = await createMockImageBuffer();
       const metadata = getImageMetadata(buffer);
 
       expect(metadata.size).toBe(buffer.length);
