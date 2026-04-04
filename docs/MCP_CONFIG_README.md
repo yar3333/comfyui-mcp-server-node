@@ -11,10 +11,11 @@ Cursor supports two ways to connect to the MCP server:
 Cursor connects to a running server via HTTP. This allows the server to run independently and be accessed by multiple clients.
 
 **Configuration:**
+
 ```json
 {
   "mcpServers": {
-    "comfyui-mcp-server": {
+    "comfyui-mcp-server-node": {
       "type": "streamable-http",
       "url": "http://127.0.0.1:9000/mcp"
     }
@@ -23,13 +24,16 @@ Cursor connects to a running server via HTTP. This allows the server to run inde
 ```
 
 **Steps:**
+
 1. Build and start the MCP server:
+
    ```bash
    cd comfyui-mcp-server-node
    npm install
    npm run build
    npm start
    ```
+
    The server will start on `http://127.0.0.1:9000/mcp`
 
 2. Add the configuration above to Cursor's MCP config file
@@ -41,15 +45,13 @@ Cursor connects to a running server via HTTP. This allows the server to run inde
 Cursor automatically starts and manages the server process. No manual server startup required.
 
 **Configuration:**
+
 ```json
 {
   "mcpServers": {
-    "comfyui-mcp-server": {
+    "comfyui-mcp-server-node": {
       "command": "node",
-      "args": [
-        "/path/to/comfyui-mcp-server-node/dist/server.js",
-        "--stdio"
-      ],
+      "args": ["/path/to/comfyui-mcp-server-node/dist/server.js", "--stdio"],
       "env": {
         "COMFYUI_URL": "http://localhost:8188"
       }
@@ -59,6 +61,7 @@ Cursor automatically starts and manages the server process. No manual server sta
 ```
 
 **Important Notes:**
+
 - **Update the Path**: Replace `/path/to/comfyui-mcp-server-node/dist/server.js` with your actual absolute path:
   - Windows: `"d:\\MyProg\\comfyui-mcp-server\\comfyui-mcp-server-node\\dist\\server.js"`
   - Mac/Linux: `"/path/to/comfyui-mcp-server-node/dist/server.js"`
@@ -67,7 +70,9 @@ Cursor automatically starts and manages the server process. No manual server sta
 - **Build First**: Make sure you've run `npm run build` before using stdio mode
 
 **Steps:**
+
 1. Build the project:
+
    ```bash
    cd comfyui-mcp-server-node
    npm install
@@ -85,6 +90,7 @@ The MCP configuration file location varies by platform. Check Cursor's settings 
 ## Verifying Connection
 
 After restarting Cursor:
+
 - Cursor should show the ComfyUI MCP server as available
 - You should see tools like `generate_image` and `generate_song` available
 
@@ -104,13 +110,13 @@ Once connected, you'll have access to all MCP tools. See [README.md](../README.m
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `COMFYUI_URL` | ComfyUI instance URL | `http://localhost:8188` |
-| `COMFY_MCP_WORKFLOW_DIR` | Workflow directory path | `./workflows` |
-| `COMFY_MCP_ASSET_TTL_HOURS` | Asset time-to-live in hours | `24` |
-| `COMFYUI_OUTPUT_ROOT` | ComfyUI output directory | (auto-detect) |
-| `COMFY_MCP_PORT` | Server port (HTTP mode) | `9000` |
+| Variable                    | Description                 | Default                 |
+| --------------------------- | --------------------------- | ----------------------- |
+| `COMFYUI_URL`               | ComfyUI instance URL        | `http://localhost:8188` |
+| `COMFY_MCP_WORKFLOW_DIR`    | Workflow directory path     | `./workflows`           |
+| `COMFY_MCP_ASSET_TTL_HOURS` | Asset time-to-live in hours | `24`                    |
+| `COMFYUI_OUTPUT_ROOT`       | ComfyUI output directory    | (auto-detect)           |
+| `COMFY_MCP_PORT`            | Server port (HTTP mode)     | `9000`                  |
 
 ## Troubleshooting
 
@@ -128,11 +134,13 @@ Once connected, you'll have access to all MCP tools. See [README.md](../README.m
 2. **Check Server Path**: Verify the path to `dist/server.js` is correct and absolute
 
 3. **Check Dependencies**: Ensure all dependencies are installed:
+
    ```bash
    npm install
    ```
 
 4. **Build the Project**: Make sure you've compiled TypeScript:
+
    ```bash
    npm run build
    ```
@@ -150,11 +158,13 @@ Once connected, you'll have access to all MCP tools. See [README.md](../README.m
 If you encounter TypeScript compilation errors:
 
 1. **Check Node.js version**: Requires Node.js 18 or higher
+
    ```bash
    node --version
    ```
 
 2. **Reinstall dependencies**:
+
    ```bash
    rm -rf node_modules
    npm install

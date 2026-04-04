@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -42,7 +44,7 @@ const PORT = parseInt(process.env.COMFY_MCP_PORT || "9000", 10);
 
 function printStartupBanner(): void {
   console.log("\n" + "=".repeat(70));
-  console.log("[*] ComfyUI-MCP-Server".padStart(35).padEnd(70));
+  console.log("[*] ComfyUI-MCP-Server-node".padStart(35).padEnd(70));
   console.log("=".repeat(70));
   console.log(`  Connecting to ComfyUI at: ${COMFYUI_URL}`);
   console.log(`  Workflow directory: ${WORKFLOW_DIR}`);

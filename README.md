@@ -1,4 +1,4 @@
-# ComfyUI MCP Server (Node.js/TypeScript)
+# ComfyUI MCP Server / comfyui-mcp-server-node
 
 _This is a node.js version of Joe Norton's python project (https://github.com/joenorton/comfyui-mcp-server)._
 
@@ -18,8 +18,27 @@ A lightweight MCP (Model Context Protocol) server that bridges AI agents (like C
 
 ## Installation
 
+### Option 1: Via npm (for MCP clients)
+
+No local clone needed! MCP clients (Cursor, Claude, etc.) can run the server directly via `npx`:
+
+```json
+"comfyui": {
+  "command": "npx",
+  "args": ["-y", "comfyui-mcp-server-node"],
+  "env": {
+    "COMFYUI_URL": "http://localhost:8188"
+  }
+}
+```
+
+### Option 2: Local development
+
 ```bash
 npm install
+npm run build
+npm start          # HTTP mode
+npm run start:stdio  # stdio mode
 ```
 
 ## Configuration
@@ -33,6 +52,25 @@ npm install
 - `COMFY_MCP_PORT` - Server port (default: 9000)
 
 ## Usage
+
+### For MCP clients (Cursor, Claude, etc.)
+
+Add the server to your MCP client configuration:
+
+```json
+"comfyui": {
+  "command": "npx",
+  "args": ["-y", "comfyui-mcp-server-node"],
+  "env": {
+    "COMFYUI_URL": "http://localhost:8188",
+    "COMFY_MCP_WORKFLOW_DIR": "/path/to/workflows",  // optional
+    "COMFY_MCP_ASSET_TTL_HOURS": "24",               // optional
+    "COMFYUI_OUTPUT_ROOT": "/path/to/output"          // optional
+  }
+}
+```
+
+> **Note:** ComfyUI must be running locally at `COMFYUI_URL` before the MCP client connects.
 
 ### Start the server (HTTP mode)
 

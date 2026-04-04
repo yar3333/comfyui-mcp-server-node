@@ -225,12 +225,12 @@ function getPublishConfigDir(): string {
   const platform = os.platform();
   if (platform === "win32") {
     const appdata = process.env.APPDATA;
-    if (appdata) return path.join(appdata, "comfyui-mcp-server");
-    return path.join(os.homedir(), "AppData", "Roaming", "comfyui-mcp-server");
+    if (appdata) return path.join(appdata, "comfyui-mcp-server-node");
+    return path.join(os.homedir(), "AppData", "Roaming", "comfyui-mcp-server-node");
   } else if (platform === "darwin") {
-    return path.join(os.homedir(), "Library", "Application Support", "comfyui-mcp-server");
+    return path.join(os.homedir(), "Library", "Application Support", "comfyui-mcp-server-node");
   }
-  return path.join(os.homedir(), ".config", "comfyui-mcp-server");
+  return path.join(os.homedir(), ".config", "comfyui-mcp-server-node");
 }
 
 function getPublishConfigFile(): string {

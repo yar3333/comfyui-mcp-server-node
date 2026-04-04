@@ -4,6 +4,13 @@
   "description": "MCP server that bridges AI agents to local ComfyUI instance",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
+  "bin": {
+    "comfyui-mcp-server-node": "./dist/server.js"
+  },
+  "files": [
+    "dist",
+    "workflows"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
