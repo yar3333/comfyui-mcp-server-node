@@ -143,6 +143,14 @@ comfyui-mcp-server-node/
 └── README.md
 ```
 
+## Changes related to node.js implementation (in comparing to original python implementation)
+
+- base mcp library: mcp (Python) => @modelcontextprotocol/sdk
+- data validation: Python typing => Zod v4 schemes
+- image processing: Pillow => sharp
+- http: requests => axios
+- entry point: server.py => dist/server.js
+
 ## License
 
 MIT
