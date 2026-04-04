@@ -4,6 +4,7 @@ export interface WorkflowParameter {
   annotation: string;
   bindings: string[];
   required: boolean;
+  description?: string;
 }
 
 export interface WorkflowToolDefinition {

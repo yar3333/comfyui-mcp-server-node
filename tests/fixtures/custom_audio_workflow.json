@@ -1,0 +1,20 @@
+{
+  "59": {
+    "class_type": "AceStepPipelineLoader",
+    "inputs": {
+      "ckpt_name": "PARAM_STR_MODEL"
+    }
+  },
+  "74": {
+    "class_type": "AceStepGeneration",
+    "inputs": {
+      "seed": "PARAM_INT_SEED",
+      "steps": "PARAM_INT_STEPS",
+      "cfg": "PARAM_FLOAT_CFG",
+      "seconds": "PARAM_INT_SECONDS",
+      "tags": "PARAM_PROMPT_TAGS",
+      "lyrics": "PARAM_PROMPT_LYRICS",
+      "lyrics_strength": "PARAM_FLOAT_LYRICS_STRENGTH"
+    }
+  }
+}

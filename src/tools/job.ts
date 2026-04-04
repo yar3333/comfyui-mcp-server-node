@@ -20,16 +20,59 @@ export function registerJobTools(server: McpServer, client: ComfyUIClient, asset
   server.registerTool(
     "get_job",
     {
-      description: "Get job status by prompt_id",
+      description: "Get job status by prompt_id. Checks queue first, then history.",
       inputSchema: z.object({ prompt_id: z.string().describe("The prompt ID of the job") }),
     },
     async (args: any) => {
       try {
+        // Check queue first (like Python version)
+        const queue = await client.getQueue();
+        const runningJobs = queue?.queue_running || [];
+        const pendingJobs = queue?.queue_pending || [];
+
+        // Check if job is in running queue
+        for (const job of runningJobs) {
+          if (job[1] === args.prompt_id) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ status: "running", prompt_id: args.prompt_id, queue_position: -1 }, null, 2),
+                },
+              ],
+            };
+          }
+        }
+
+        // Check if job is in pending queue
+        for (const job of pendingJobs) {
+          if (job[1] === args.prompt_id) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify(
+                    { status: "queued", prompt_id: args.prompt_id, queue_position: job[0] },
+                    null,
+                    2,
+                  ),
+                },
+              ],
+            };
+          }
+        }
+
+        // Not in queue, check history
         const history = await client.getHistory(args.prompt_id);
         if (!history || !(args.prompt_id in history)) {
           return { content: [{ type: "text", text: `Job not found: ${args.prompt_id}` }], isError: true };
         }
-        return { content: [{ type: "text", text: JSON.stringify(history[args.prompt_id], null, 2) }] };
+
+        const jobData = history[args.prompt_id];
+        const statusStr = jobData.status?.status_str || "unknown";
+        return {
+          content: [{ type: "text", text: JSON.stringify(jobData, null, 2) }],
+        };
       } catch (error: any) {
         return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
       }
@@ -59,6 +102,7 @@ export function registerJobTools(server: McpServer, client: ComfyUIClient, asset
           mime_type: asset.mime_type,
           bytes_size: asset.bytes_size,
           workflow_id: asset.workflow_id,
+          session_id: asset.session_id,
           created_at: asset.created_at.toISOString(),
         }));
         return { content: [{ type: "text", text: JSON.stringify(assetList, null, 2) }] };

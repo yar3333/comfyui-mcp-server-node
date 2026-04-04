@@ -11,18 +11,14 @@ export function registerPublishTools(
 ): void {
   server.registerTool(
     "get_publish_info",
-    { description: "Get information about the publish system configuration", inputSchema: z.object({}) },
+    {
+      description:
+        "Show publish status (detected project root, publish dir, ComfyUI output root, and any missing setup)",
+      inputSchema: z.object({}),
+    },
     async () => {
       try {
-        const config = publishManager.getConfig();
-        const info = {
-          project_root: config.projectRoot,
-          project_root_method: config.projectRootMethod,
-          publish_root: config.publishRoot,
-          comfyui_output_root: config.comfyuiOutputRoot,
-          comfyui_output_method: config.comfyuiOutputMethod,
-          comfyui_url: config.comfyuiUrl,
-        };
+        const info = publishManager.getPublishInfo();
         return { content: [{ type: "text", text: JSON.stringify(info, null, 2) }] };
       } catch (error: any) {
         return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
@@ -33,15 +29,22 @@ export function registerPublishTools(
   server.registerTool(
     "set_comfyui_output_root",
     {
-      description: "Set the ComfyUI output directory path",
+      description:
+        "Set ComfyUI output directory (recommended for Comfy Desktop / nonstandard installs; persisted across restarts)",
       inputSchema: z.object({ path: z.string().describe("Path to ComfyUI output directory") }),
     },
     async (args: any) => {
       try {
-        const config = publishManager.getConfig();
-        config.comfyuiOutputRoot = args.path;
-        config.comfyuiOutputMethod = "manual";
-        return { content: [{ type: "text", text: `ComfyUI output root set to: ${args.path}` }] };
+        const result = publishManager.setComfyuiOutputRoot(args.path);
+
+        if (result.error) {
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+            isError: true,
+          };
+        }
+
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       } catch (error: any) {
         return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
       }
@@ -51,14 +54,19 @@ export function registerPublishTools(
   server.registerTool(
     "publish_asset",
     {
-      description: "Publish a generated asset to a web project directory",
+      description:
+        "Publish a generated asset into the project's web directory with deterministic compression (default 600KB)",
       inputSchema: z.object({
         asset_id: z.string().describe("ID of the asset to publish"),
-        target_filename: z.string().describe("Target filename for the published asset"),
-        manifest_key: z.string().optional().describe("Key to use in manifest.json (optional)"),
+        target_filename: z
+          .string()
+          .optional()
+          .describe("Target filename (required for demo mode, optional for library mode)"),
+        manifest_key: z.string().optional().describe("Key to use in manifest.json (library mode)"),
         web_optimize: z.boolean().optional().describe("Optimize image for web (WebP compression)"),
-        max_bytes: z.number().optional().describe("Maximum file size in bytes (for web optimization)"),
+        max_bytes: z.number().optional().describe("Maximum file size in bytes (default: 600000)"),
         overwrite: z.boolean().optional().describe("Overwrite existing file"),
+        library_mode: z.boolean().optional().describe("Auto-generate filename from asset_id"),
       }),
     },
     async (args: any) => {
@@ -78,15 +86,18 @@ export function registerPublishTools(
           : path.join(config.comfyuiOutputRoot, asset.filename);
 
         const webOptimize = args.web_optimize || false;
-        const overwrite = args.overwrite || false;
+        const overwrite = args.overwrite !== undefined ? args.overwrite : true;
+        const libraryMode = args.library_mode || false;
 
         const result = await publishManager.publishAsset(
           sourcePath,
           args.target_filename,
           args.manifest_key,
           webOptimize,
-          args.max_bytes,
+          args.max_bytes || 600000,
           overwrite,
+          libraryMode,
+          asset.asset_id,
         );
 
         return {
@@ -97,8 +108,11 @@ export function registerPublishTools(
                 {
                   success: true,
                   target_path: result.target_path,
+                  dest_url: result.dest_url,
                   size: result.size,
+                  mime_type: result.mime_type,
                   manifest_key: result.manifest_key,
+                  compression_info: result.compression_info,
                 },
                 null,
                 2,
