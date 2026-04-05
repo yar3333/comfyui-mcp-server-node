@@ -16,46 +16,11 @@ A lightweight MCP (Model Context Protocol) server that bridges AI agents (like C
 - **Publish System**: Publish assets to web project directories with optimization
 - **Configuration**: Manage defaults and model settings
 
-## Installation
+## Quick Start
 
-### Option 1: Via npm (for MCP clients)
+### Option 1: Via npx (for MCP clients)
 
-No local clone needed! MCP clients (Cursor, Claude, etc.) can run the server directly via `npx`:
-
-```json
-"comfyui": {
-  "command": "npx",
-  "args": ["-y", "comfyui-mcp-server-node"],
-  "env": {
-    "COMFYUI_URL": "http://localhost:8188"
-  }
-}
-```
-
-### Option 2: Local development
-
-```bash
-npm install
-npm run build
-npm start          # HTTP mode
-npm run start:stdio  # stdio mode
-```
-
-## Configuration
-
-### Environment Variables
-
-- `COMFYUI_URL` - ComfyUI base URL (default: `http://localhost:8188`)
-- `COMFY_MCP_WORKFLOW_DIR` - Path to workflow directory
-- `COMFY_MCP_ASSET_TTL_HOURS` - Asset time-to-live in hours (default: 24)
-- `COMFYUI_OUTPUT_ROOT` - ComfyUI output directory path
-- `COMFY_MCP_PORT` - Server port (default: 9000)
-
-## Usage
-
-### For MCP clients (Cursor, Claude, etc.)
-
-Add the server to your MCP client configuration:
+No local clone needed. Add to your MCP client configuration (Cursor, Claude, etc.):
 
 ```json
 "comfyui": {
@@ -63,34 +28,44 @@ Add the server to your MCP client configuration:
   "args": ["-y", "comfyui-mcp-server-node"],
   "env": {
     "COMFYUI_URL": "http://localhost:8188",
-    "COMFY_MCP_WORKFLOW_DIR": "/path/to/workflows",  // optional
-    "COMFY_MCP_ASSET_TTL_HOURS": "24",               // optional
-    "COMFYUI_OUTPUT_ROOT": "/path/to/output"          // optional
+    "COMFY_MCP_WORKFLOW_DIR": "/path/to/workflows",
+    "COMFY_MCP_ASSET_TTL_HOURS": "24",
+    "COMFYUI_OUTPUT_ROOT": "/path/to/output"
   }
 }
 ```
 
-> **Note:** ComfyUI must be running locally at `COMFYUI_URL` before the MCP client connects.
+> **Note:** ComfyUI must be running at `COMFYUI_URL` before the MCP client connects.
 
-### Start the server (HTTP mode)
+### Option 2: Local development
 
 ```bash
+git clone https://github.com/yar3333/comfyui-mcp-server-node.git
+cd comfyui-mcp-server-node
+npm install
 npm run build
-npm start
 ```
 
-### Start the server (stdio mode for MCP clients)
+Then start:
 
-```bash
-npm run start:stdio
-```
+| Command               | Mode                               |
+| --------------------- | ---------------------------------- |
+| `npm start`           | HTTP (`http://127.0.0.1:9000/mcp`) |
+| `npm run start:stdio` | stdio (for MCP clients)            |
+| `npm run dev`         | HTTP with ts-node                  |
+| `npm run dev:stdio`   | stdio with ts-node                 |
 
-### Development mode
+## Configuration
 
-```bash
-npm run dev          # HTTP mode
-npm run dev:stdio    # stdio mode
-```
+### Environment Variables
+
+| Variable                    | Description                   | Default                 |
+| --------------------------- | ----------------------------- | ----------------------- |
+| `COMFYUI_URL`               | ComfyUI base URL              | `http://localhost:8188` |
+| `COMFY_MCP_WORKFLOW_DIR`    | Path to workflow directory    | `./workflows`           |
+| `COMFY_MCP_ASSET_TTL_HOURS` | Asset time-to-live in hours   | `24`                    |
+| `COMFYUI_OUTPUT_ROOT`       | ComfyUI output directory path | _(auto-detect)_         |
+| `COMFY_MCP_PORT`            | Server port (HTTP mode)       | `9000`                  |
 
 ## API Tools
 
@@ -152,37 +127,20 @@ Workflows are stored as JSON files in the `workflows/` directory. The system aut
 
 ## Test
 
-1. Start ComfyUI
-   Make sure ComfyUI is running at http://localhost:8188.
+Prerequisites: ComfyUI running at `http://localhost:8188`, server built and started.
 
-2. Build and start the server
-
-```
-# From the comfyui-mcp-server-node directory
-
-# Build
-npm run build
-
-# Start in HTTP mode (for browser/testing)
-npm start
-
-# Or in stdio mode (for MCP clients like Cursor/Claude)
-npm run start:stdio
-```
-
-The server will start at http://127.0.0.1:9000/mcp.
-
-3. Run the test client
-
-```
-# With default prompt
+```bash
+# Run the test client
 npx ts-node test_client.ts
 
-# With your own prompt
+# With custom prompt
 npx ts-node test_client.ts -p "a beautiful sunset over mountains"
 ```
 
-The test client will connect to the server, check available tools, and run generate_image.
+```bash
+# Run unit tests
+npm test
+```
 
 ## Project Structure
 
