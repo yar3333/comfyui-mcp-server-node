@@ -1,4 +1,4 @@
-# ComfyUI MCP Server / comfyui-mcp-server-node
+# comfyui-mcp-server-node
 
 _This is a node.js version of Joe Norton's python project (https://github.com/joenorton/comfyui-mcp-server)._
 
