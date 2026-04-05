@@ -30,6 +30,10 @@
   ],
   "author": "yar3333",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yar3333/comfyui-mcp-server-node"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "axios": "^1.7.0",
