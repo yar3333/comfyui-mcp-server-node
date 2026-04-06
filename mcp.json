@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "comfyui-mcp-server-node": {
-      "type": "streamable-http",
-      "url": "http://127.0.0.1:9000/mcp"
-    }
-  }
-}
