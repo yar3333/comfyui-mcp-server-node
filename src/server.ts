@@ -187,34 +187,12 @@ async function main(): Promise<void> {
     console.error("Publish manager not available - publish tools will not be registered");
   }
 
-  // Check if running as MCP command (stdio) or standalone (streamable-http)
-  const useStdio = process.argv.includes("--stdio");
+  // Check if running as HTTP server or stdio (default)
+  // Default is stdio for MCP clients (npx, Cursor, Claude Desktop, etc.)
+  const useHttp = process.argv.includes("--http");
 
-  if (useStdio) {
-    // Initialize global instances
-    const comfyuiClient = new ComfyUIClient(COMFYUI_URL);
-    const workflowManager = new WorkflowManager(WORKFLOW_DIR);
-    const defaultsManager = new DefaultsManager(comfyuiClient);
-    const assetRegistry = new AssetRegistry(ASSET_TTL_HOURS, COMFYUI_URL);
-    await defaultsManager.initialize();
-
-    let publishManager: PublishManager | null = null;
-    try {
-      const publishConfig = new PublishConfig(COMFYUI_OUTPUT_ROOT, COMFYUI_URL);
-      publishManager = new PublishManager(publishConfig);
-    } catch {
-      // publish unavailable in stdio
-    }
-
-    const server = new McpServer({ name: "ComfyUI_MCP_Server", version: "1.0.0" }, { capabilities: {} });
-    registerConfigurationTools(server, comfyuiClient, defaultsManager);
-    registerWorkflowTools(server, workflowManager, comfyuiClient, defaultsManager, assetRegistry);
-    registerAssetTools(server, assetRegistry);
-    registerWorkflowGenerationTools(server, workflowManager, comfyuiClient, defaultsManager, assetRegistry);
-    registerRegenerateTool(server, comfyuiClient, assetRegistry);
-    registerJobTools(server, comfyuiClient, assetRegistry);
-    if (publishManager) registerPublishTools(server, assetRegistry, publishManager);
-
+  if (!useHttp) {
+    // Stdio mode (default for MCP clients)
     console.log("\n" + "=".repeat(70));
     console.log("[+] Server Ready".padStart(35).padEnd(70));
     console.log("=".repeat(70));

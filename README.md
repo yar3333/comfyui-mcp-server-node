@@ -4,7 +4,7 @@ _This is a node.js version of Joe Norton's python project (https://github.com/jo
 
 A lightweight MCP (Model Context Protocol) server that bridges AI agents (like Cursor, Claude, etc.) with a local ComfyUI instance. It enables AI agents to generate and iteratively refine images, audio, and video through conversational tool calls.
 
-**Transport:** Streamable HTTP on `http://127.0.0.1:9000/mcp` (with optional stdio mode for MCP clients).
+**Transport:** Stdio by default (for MCP clients like Cursor, Claude, etc.), with optional HTTP mode via `--http` flag.
 
 ## Features
 
@@ -48,12 +48,12 @@ npm run build
 
 Then start:
 
-| Command               | Mode                               |
-| --------------------- | ---------------------------------- |
-| `npm start`           | HTTP (`http://127.0.0.1:9000/mcp`) |
-| `npm run start:stdio` | stdio (for MCP clients)            |
-| `npm run dev`         | HTTP with ts-node                  |
-| `npm run dev:stdio`   | stdio with ts-node                 |
+| Command              | Mode                               |
+| -------------------- | ---------------------------------- |
+| `npm start`          | stdio (for MCP clients)            |
+| `npm run start:http` | HTTP (`http://127.0.0.1:9000/mcp`) |
+| `npm run dev`        | stdio with ts-node                 |
+| `npm run dev:http`   | HTTP with ts-node                  |
 
 ## Configuration
 

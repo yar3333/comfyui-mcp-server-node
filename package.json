@@ -14,9 +14,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "start:stdio": "node dist/server.js --stdio",
+    "start:http": "node dist/server.js --http",
     "dev": "ts-node src/server.ts",
-    "dev:stdio": "ts-node src/server.ts --stdio",
+    "dev:http": "ts-node src/server.ts --http",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "clean": "rimraf dist"
