@@ -47,7 +47,7 @@ export class ComfyUIClient {
 
   async getAvailableModels(): Promise<string[]> {
     try {
-      const [checkpointResponse, unetResponse] = await Promise.allSettled([
+      const [checkpointResponse, unetResponse, unetGgufResponse] = await Promise.allSettled([
         this.client.get("/object_info/CheckpointLoaderSimple"),
         this.client.get("/object_info/UNETLoader"),
         this.client.get("/object_info/UnetLoaderGGUF"),
@@ -82,6 +82,21 @@ export class ComfyUIClient {
           }
         } catch (error) {
           console.debug("Failed to parse UNet models");
+        }
+      }
+
+      // Extract UNet/diffusion models
+      if (unetGgufResponse.status === "fulfilled") {
+        try {
+          const data = unetGgufResponse.value.data;
+          const unetGgufInfo = data["UnetLoaderGGUF"];
+          if (unetGgufInfo?.input?.required?.unet_name) {
+            const unetNameInfo = unetGgufInfo.input.required.unet_name;
+            const unetGgufModels = Array.isArray(unetNameInfo[0]) ? unetNameInfo[0] : unetNameInfo;
+            models.push(...(unetGgufModels as string[]));
+          }
+        } catch (error) {
+          console.debug("Failed to parse UNetGguf models");
         }
       }
 
