@@ -31,68 +31,66 @@ interface WorkflowResult {
 
 export class ComfyUIClient {
   private client: AxiosInstance;
-  public availableModels: string[];
 
-  constructor(baseUrl: string = "http://localhost:8188") {
+  static async create(baseUrl: string = "http://localhost:8188") {
+    const comfyClient = new ComfyUIClient(baseUrl);
+    await comfyClient.getAvailableModels();
+    return comfyClient;
+  }
+
+  private constructor(baseUrl: string) {
     this.client = axios.create({
       baseURL: baseUrl,
       timeout: 30000,
     });
-    this.availableModels = this._getAvailableModelsSync();
   }
 
-  public refreshModels(): void {
-    this.availableModels = this._getAvailableModelsSync();
-  }
-
-  private _getAvailableModelsSync(): string[] {
+  async getAvailableModels(): Promise<string[]> {
     try {
-      const response = this.client.get("/object_info/CheckpointLoaderSimple");
-      // Sync call - this is a simplification; in production, use proper async
-      return [];
-    } catch (error) {
-      console.warn("Failed to fetch models; using empty list");
-      return [];
-    }
-  }
+      const [checkpointResponse, unetResponse] = await Promise.allSettled([
+        this.client.get("/object_info/CheckpointLoaderSimple"),
+        this.client.get("/object_info/UNETLoader"),
+      ]);
 
-  public async getAvailableModels(): Promise<string[]> {
-    try {
-      const response = await this.client.get("/object_info/CheckpointLoaderSimple");
-      const data = response.data;
+      const models: string[] = [];
 
-      try {
-        const checkpointInfo = data["CheckpointLoaderSimple"];
-        if (!checkpointInfo || typeof checkpointInfo !== "object") {
-          console.warn("Unexpected CheckpointLoaderSimple structure");
-          return [];
+      // Extract checkpoint models
+      if (checkpointResponse.status === "fulfilled") {
+        try {
+          const data = checkpointResponse.value.data;
+          const checkpointInfo = data["CheckpointLoaderSimple"];
+          if (checkpointInfo?.input?.required?.ckpt_name) {
+            const ckptNameInfo = checkpointInfo.input.required.ckpt_name;
+            const checkpointModels = Array.isArray(ckptNameInfo[0]) ? ckptNameInfo[0] : ckptNameInfo;
+            models.push(...(checkpointModels as string[]));
+          }
+        } catch (error) {
+          console.debug("Failed to parse checkpoint models");
         }
-
-        const inputInfo = checkpointInfo.input;
-        if (!inputInfo || typeof inputInfo !== "object") {
-          console.warn("Unexpected input structure");
-          return [];
-        }
-
-        const requiredInfo = inputInfo.required;
-        if (!requiredInfo || typeof requiredInfo !== "object") {
-          console.warn("Unexpected required structure");
-          return [];
-        }
-
-        const ckptNameInfo = requiredInfo.ckpt_name;
-        if (!Array.isArray(ckptNameInfo) || ckptNameInfo.length === 0) {
-          console.warn("No checkpoint models found");
-          return [];
-        }
-
-        const models = Array.isArray(ckptNameInfo[0]) ? ckptNameInfo[0] : ckptNameInfo;
-        console.info("Available models:", models);
-        return models as string[];
-      } catch (error) {
-        console.warn("Unexpected API response structure:", error);
-        return [];
       }
+
+      // Extract UNet/diffusion models
+      if (unetResponse.status === "fulfilled") {
+        try {
+          const data = unetResponse.value.data;
+          const unetInfo = data["UNETLoader"];
+          if (unetInfo?.input?.required?.unet_name) {
+            const unetNameInfo = unetInfo.input.required.unet_name;
+            const unetModels = Array.isArray(unetNameInfo[0]) ? unetNameInfo[0] : unetNameInfo;
+            models.push(...(unetModels as string[]));
+          }
+        } catch (error) {
+          console.debug("Failed to parse UNet models");
+        }
+      }
+
+      if (models.length > 0) {
+        console.info("Available models:", models);
+      } else {
+        console.warn("No models found");
+      }
+
+      return models;
     } catch (error) {
       console.warn("Error fetching models:", error);
       return [];

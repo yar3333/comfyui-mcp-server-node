@@ -134,7 +134,7 @@ async function main(): Promise<void> {
   }
 
   // Initialize global instances
-  const comfyuiClient = new ComfyUIClient(COMFYUI_URL);
+  const comfyuiClient = await ComfyUIClient.create(COMFYUI_URL);
   const workflowManager = new WorkflowManager(WORKFLOW_DIR);
   const defaultsManager = new DefaultsManager(comfyuiClient);
   const assetRegistry = new AssetRegistry(ASSET_TTL_HOURS, COMFYUI_URL);
@@ -210,7 +210,7 @@ async function main(): Promise<void> {
       server: McpServer;
       transport: StreamableHTTPServerTransport;
     }> {
-      const sessionComfyuiClient = new ComfyUIClient(COMFYUI_URL);
+      const sessionComfyuiClient = await ComfyUIClient.create(COMFYUI_URL);
       const sessionWorkflowManager = new WorkflowManager(WORKFLOW_DIR);
       const sessionDefaultsManager = new DefaultsManager(sessionComfyuiClient);
 
