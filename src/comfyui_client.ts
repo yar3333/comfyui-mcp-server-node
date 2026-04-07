@@ -50,6 +50,7 @@ export class ComfyUIClient {
       const [checkpointResponse, unetResponse] = await Promise.allSettled([
         this.client.get("/object_info/CheckpointLoaderSimple"),
         this.client.get("/object_info/UNETLoader"),
+        this.client.get("/object_info/GGUFLoader"),
       ]);
 
       const models: string[] = [];
