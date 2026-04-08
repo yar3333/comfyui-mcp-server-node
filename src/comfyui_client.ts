@@ -31,6 +31,7 @@ interface WorkflowResult {
 
 export class ComfyUIClient {
   private readonly client: AxiosInstance;
+  private _connected: boolean = false;
 
   constructor(baseUrl: string) {
     this.client = axios.create({
@@ -39,7 +40,34 @@ export class ComfyUIClient {
     });
   }
 
+  /**
+   * Checks ComfyUI availability on first call, caches the result.
+   * Throws a descriptive error if ComfyUI is not reachable.
+   */
+  private async ensureConnected(): Promise<void> {
+    if (this._connected) return;
+
+    try {
+      const response = await this.client.get("/object_info/CheckpointLoaderSimple", { timeout: 5000 });
+      if (response.status === 200) {
+        const data = response.data;
+        const checkpointInfo = data["CheckpointLoaderSimple"];
+        if (typeof checkpointInfo === "object") {
+          this._connected = true;
+          return;
+        }
+      }
+    } catch (error) {
+      // fall through
+    }
+
+    const baseUrl = this.client.defaults.baseURL;
+    throw new Error(`ComfyUI is not available at ${baseUrl}. ` + `Please ensure ComfyUI is running and try again.`);
+  }
+
   async getAvailableCheckpointModels(): Promise<string[]> {
+    await this.ensureConnected();
+
     try {
       const response: any = await this.client.get("/object_info/CheckpointLoaderSimple");
 
@@ -74,6 +102,8 @@ export class ComfyUIClient {
   }
 
   async getAvailableUnetModels(): Promise<string[]> {
+    await this.ensureConnected();
+
     try {
       const response: any = await this.client.get("/object_info/UNETLoader");
 
@@ -107,6 +137,8 @@ export class ComfyUIClient {
     }
   }
   async getAvailableUnetGgufModels(): Promise<string[]> {
+    await this.ensureConnected();
+
     try {
       const response: any = await this.client.get("/object_info/UnetLoaderGGUF");
 
@@ -145,6 +177,8 @@ export class ComfyUIClient {
     preferredOutputKeys: string[] = ["images", "image", "gifs", "gif", "audio", "audios", "files"],
     maxAttempts: number = 30,
   ): Promise<WorkflowResult> {
+    await this.ensureConnected();
+
     const promptId = await this._queueWorkflow(workflow);
     const outputs = await this._waitForPrompt(promptId, maxAttempts);
 
@@ -468,6 +502,8 @@ export class ComfyUIClient {
   }
 
   public async getQueue(): Promise<Record<string, any>> {
+    await this.ensureConnected();
+
     try {
       const response = await this.client.get("/queue");
       return response.data;
@@ -478,6 +514,8 @@ export class ComfyUIClient {
   }
 
   public async getHistory(promptId?: string | null): Promise<Record<string, any>> {
+    await this.ensureConnected();
+
     try {
       const url = promptId ? `/history/${promptId}` : "/history";
       const response = await this.client.get(url);
@@ -489,6 +527,8 @@ export class ComfyUIClient {
   }
 
   public async cancelPrompt(promptId: string): Promise<boolean> {
+    await this.ensureConnected();
+
     try {
       const response = await this.client.post("/queue", { delete: [promptId] });
       return response.status === 200;
