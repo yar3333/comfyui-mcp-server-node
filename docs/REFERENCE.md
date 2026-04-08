@@ -7,6 +7,12 @@ Complete technical reference for ComfyUI MCP Server (Node.js/TypeScript) tools, 
 - [Generation Tools](#generation-tools)
 - [Viewing Tools](#viewing-tools)
 - [Job Management Tools](#job-management-tools)
+  - [get_queue_status](#get_queue_status)
+  - [get_job](#get_job)
+  - [wait_for_job](#wait_for_job)
+  - [list_assets](#list_assets)
+  - [get_asset_metadata](#get_asset_metadata)
+  - [cancel_job](#cancel_job)
 - [Asset Management Tools](#asset-management-tools)
 - [Configuration Tools](#configuration-tools)
 - [Workflow Tools](#workflow-tools)
@@ -297,6 +303,89 @@ z.object({
 **User:** "Is that image generation I started earlier finished yet?"
 
 **Agent:** _Calls `get_job(prompt_id="...")` → reports current status (pending/running/completed/error)_
+
+### wait_for_job
+
+Wait for a job to complete by polling until it finishes or timeout is reached.
+
+**Input Schema (Zod v4):**
+
+```typescript
+z.object({
+  prompt_id: z.string(),
+  timeout: z.number().optional().default(600),
+});
+```
+
+**Parameters:**
+
+- `prompt_id` (string): Prompt ID of the job to wait for
+- `timeout` (number): Maximum time to wait in seconds. Default: 600 (10 minutes)
+
+**Returns (Job still running/queued):**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\n  \"status\": \"running\",\n  \"prompt_id\": \"uuid-string\",\n  \"elapsed_seconds\": 30,\n  \"timeout_remaining_seconds\": 570,\n  \"message\": \"Job still running. Call wait_for_job again to continue waiting.\"\n}"
+    }
+  ]
+}
+```
+
+**Returns (Job completed):**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\n  \"status\": \"completed\",\n  \"prompt_id\": \"uuid-string\",\n  \"final_status\": \"success\",\n  \"elapsed_seconds\": 45,\n  \"job_data\": { ... }\n}"
+    }
+  ]
+}
+```
+
+**Returns (Timeout):**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\n  \"status\": \"timeout\",\n  \"prompt_id\": \"uuid-string\",\n  \"timeout_seconds\": 600,\n  \"message\": \"Job uuid-string did not complete within 600 seconds. Use get_job to check status.\"\n}"
+    }
+  ]
+}
+```
+
+**Behavior:**
+
+- Polls every 15 seconds by checking the queue and history endpoints
+- Returns immediately if job is still running (with remaining timeout)
+- Returns when job completes (success or error)
+- Returns timeout status if job doesn't complete within the specified time
+
+**Examples:**
+
+**User:** "Generate this image and wait for it to finish"
+
+**Agent:**
+
+- _Calls `generate_image(prompt="...")` → gets prompt_id_
+- _Calls `wait_for_job(prompt_id="...", timeout=300)` → polls until done or 5 min timeout_
+- _If completed, calls `view_image()` to show the result_
+
+---
+
+**User:** "Start a long generation, I'll let you know when to check"
+
+**Agent:**
+
+- _Calls `generate_image(prompt="...")` → gets prompt_id_
+- _Later: calls `wait_for_job(prompt_id="...", timeout=600)` → waits up to 10 minutes_
 
 ### list_assets
 

@@ -67,7 +67,7 @@ Once connected, you'll have access to all MCP tools. See [README.md](../README.m
 - **generate_song**: Generate audio/songs using ComfyUI
 - **regenerate**: Regenerate existing assets with parameter overrides
 - **view_image**: View generated images inline
-- **get_job**, **get_queue_status**, **cancel_job**: Job management
+- **get_job**, **get_queue_status**, **wait_for_job**, **cancel_job**: Job management
 - **list_assets**, **get_asset_metadata**: Asset browsing
 - **list_workflows**, **run_workflow**: Workflow execution
 

@@ -80,6 +80,7 @@ Then start:
 | -------------------- | --------------------------------------------- |
 | `get_queue_status`   | Get current queue status from ComfyUI         |
 | `get_job`            | Get job status by prompt_id                   |
+| `wait_for_job`       | Wait for a job to complete with timeout       |
 | `list_assets`        | List generated assets with optional filtering |
 | `get_asset_metadata` | Get full metadata for a specific asset        |
 | `cancel_job`         | Cancel a running job by prompt_id             |

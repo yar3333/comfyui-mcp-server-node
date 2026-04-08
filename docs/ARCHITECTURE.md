@@ -437,6 +437,18 @@ Direct passthrough to ComfyUI `/queue` endpoint - no reimplementation of queue l
 - Distinguishes between "not found" and "error" states
 - Handles ComfyUI unavailability
 
+### Job Waiting
+
+`wait_for_job(prompt_id, timeout)` blocks until a job completes or times out:
+
+- Polls every 15 seconds via queue and history endpoints
+- Returns intermediate status if job is still running (with remaining timeout)
+- Returns final status on completion (success or error)
+- Returns timeout status if job doesn't complete within the specified window
+- Default timeout: 600 seconds (10 minutes)
+
+**Use Case:** Allows AI agents to synchronously wait for generation results before proceeding to the next step (e.g., viewing the image, regenerating with different parameters).
+
 ### Asset Browsing
 
 `list_assets()` enables AI memory and iteration:
