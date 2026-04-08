@@ -1,6 +1,6 @@
 {
   "name": "comfyui-mcp-server-node",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "MCP server that bridges AI agents to local ComfyUI instance",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
