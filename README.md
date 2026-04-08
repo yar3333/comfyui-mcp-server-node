@@ -4,8 +4,6 @@ _This is improved node.js version of Joe Norton's python project (https://github
 
 A lightweight MCP (Model Context Protocol) server that bridges AI agents (like Cursor, Claude, etc.) with a local ComfyUI instance. It enables AI agents to generate and iteratively refine images, audio, and video through conversational tool calls.
 
-**Transport:** Stdio by default (for MCP clients like Cursor, Claude, etc.), with optional HTTP mode via `--http` flag.
-
 ## Features
 
 - **Image Generation**: Generate images using Stable Diffusion through ComfyUI
@@ -46,12 +44,10 @@ npm run build
 
 Then start:
 
-| Command              | Mode                               |
-| -------------------- | ---------------------------------- |
-| `npm start`          | stdio (for MCP clients)            |
-| `npm run start:http` | HTTP (`http://127.0.0.1:9000/mcp`) |
-| `npm run dev`        | stdio with ts-node                 |
-| `npm run dev:http`   | HTTP with ts-node                  |
+| Command       | Mode                    |
+| ------------- | ----------------------- |
+| `npm start`   | stdio (for MCP clients) |
+| `npm run dev` | stdio with ts-node      |
 
 ## Configuration
 
@@ -62,17 +58,15 @@ Then start:
 | `COMFYUI_URL`               | ComfyUI base URL            | `http://localhost:8188` |
 | `COMFY_MCP_WORKFLOW_DIR`    | Path to workflow directory  | `./workflows`           |
 | `COMFY_MCP_ASSET_TTL_HOURS` | Asset time-to-live in hours | `24`                    |
-| `COMFY_MCP_PORT`            | Server port (HTTP mode)     | `9000`                  |
 
 ## API Tools
 
 ### Generation Tools
 
-| Tool             | Description                               |
-| ---------------- | ----------------------------------------- |
-| `generate_image` | Generate an image from a text prompt      |
-| `generate_song`  | Generate audio/music from tags and lyrics |
-| `regenerate`     | Regenerate a previously generated asset   |
+| Tool          | Description                                          |
+| ------------- | ---------------------------------------------------- |
+| `<workflows>` | Available workflows automatically published as tools |
+| `regenerate`  | Regenerate a previously generated asset              |
 
 ### Viewing Tools
 
@@ -166,6 +160,7 @@ comfyui-mcp-server-node/
 - add `list_checkpoint_models` tool
 - add `list_unet_models` tool
 - add `list_unet_gguf_models` tool
+- remove http mode (stdio looks enough)
 - remove `list_models` tool
 - remove publish system (caused confusion for AI agents; use custom output node instead)
 - remove default parameters (caused confusion for AI agents; use regular PARAM\_\* instead)

@@ -2,47 +2,9 @@
 
 This file explains how to configure Cursor to connect to the ComfyUI MCP Server (Node.js/TypeScript). For general usage instructions, see [README.md](../README.md).
 
-## Two Connection Methods
+## Connection Configuration
 
-Cursor supports two ways to connect to the MCP server:
-
-### Option 1: HTTP-based Connection (Recommended)
-
-Cursor connects to a running server via HTTP. This allows the server to run independently and be accessed by multiple clients.
-
-**Configuration:**
-
-```json
-{
-  "mcpServers": {
-    "comfyui-mcp-server-node": {
-      "type": "streamable-http",
-      "url": "http://127.0.0.1:9000/mcp"
-    }
-  }
-}
-```
-
-**Steps:**
-
-1. Build and start the MCP server:
-
-   ```bash
-   cd comfyui-mcp-server-node
-   npm install
-   npm run build
-   npm start
-   ```
-
-   The server will start on `http://127.0.0.1:9000/mcp`
-
-2. Add the configuration above to Cursor's MCP config file
-
-3. Restart Cursor
-
-### Option 2: Command-based Connection (stdio)
-
-Cursor automatically starts and manages the server process. No manual server startup required.
+Cursor connects to the MCP server via stdio. The server process is automatically started and managed by Cursor.
 
 **Configuration:**
 
@@ -51,7 +13,7 @@ Cursor automatically starts and manages the server process. No manual server sta
   "mcpServers": {
     "comfyui-mcp-server-node": {
       "command": "node",
-      "args": ["/path/to/comfyui-mcp-server-node/dist/server.js", "--stdio"],
+      "args": ["/path/to/comfyui-mcp-server-node/dist/server.js"],
       "env": {
         "COMFYUI_URL": "http://localhost:8188"
       }
@@ -116,17 +78,10 @@ Once connected, you'll have access to all MCP tools. See [README.md](../README.m
 | `COMFYUI_URL`               | ComfyUI instance URL        | `http://localhost:8188` |
 | `COMFY_MCP_WORKFLOW_DIR`    | Workflow directory path     | `./workflows`           |
 | `COMFY_MCP_ASSET_TTL_HOURS` | Asset time-to-live in hours | `24`                    |
-| `COMFY_MCP_PORT`            | Server port (HTTP mode)     | `9000`                  |
 
 ## Troubleshooting
 
-### Server Not Connecting (HTTP-based)
-
-1. **Check Server is Running**: Make sure you've started the server with `npm start`
-2. **Check Port**: Verify the server is listening on `http://127.0.0.1:9000/mcp`
-3. **Check ComfyUI**: Ensure ComfyUI is running on the configured port (default: 8188)
-
-### Server Not Starting (Command-based)
+### Server Not Starting
 
 1. **Check Node.js Path**: Make sure `node` in the command is the correct Node.js interpreter
    - Or use the full path: `"C:\\Program Files\\nodejs\\node.exe"` (Windows) or `"/usr/bin/node"` (Mac/Linux)
@@ -178,7 +133,5 @@ If you encounter TypeScript compilation errors:
 
 ### General Issues
 
-- **Transport Type**: Make sure you're using `"type": "streamable-http"` (not `"http"`) for HTTP-based connections
 - **Path Format**: Use forward slashes or escaped backslashes in JSON paths (Windows: `"d:\\\\MyProg\\\\..."` or `"d:/MyProg/..."`)
 - **Restart Required**: Always restart Cursor after changing MCP configuration
-- **Port Conflicts**: Ensure port 9000 is not already in use (change via `COMFY_MCP_PORT` env var)

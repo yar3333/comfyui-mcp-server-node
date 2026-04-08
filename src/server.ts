@@ -1,22 +1,9 @@
 #!/usr/bin/env node
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { InMemoryEventStore } from "@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js";
-import { randomUUID } from "crypto";
 import * as path from "path";
 import axios from "axios";
-
-function isInitializeRequest(body: unknown): boolean {
-  if (Array.isArray(body)) {
-    return body.some((msg: any) => msg.method === "initialize");
-  }
-  if (body && typeof body === "object") {
-    return (body as any).method === "initialize";
-  }
-  return false;
-}
 
 import { ComfyUIClient } from "./comfyui_client";
 import { WorkflowManager } from "./managers/workflow_manager";
@@ -34,8 +21,6 @@ const COMFYUI_URL = process.env.COMFYUI_URL || "http://localhost:8188";
 const COMFYUI_MAX_RETRIES = 2;
 const COMFYUI_INITIAL_DELAY = 2000; // ms
 const COMFYUI_MAX_DELAY = 16000; // ms
-const COMFYUI_OUTPUT_ROOT = process.env.COMFYUI_OUTPUT_ROOT || null;
-const PORT = parseInt(process.env.COMFY_MCP_PORT || "9000", 10);
 
 function printStartupBanner(): void {
   console.log("\n" + "=".repeat(70));
@@ -152,136 +137,17 @@ async function main(): Promise<void> {
   registerRegenerateTool(server, comfyuiClient, assetRegistry);
   registerJobTools(server, comfyuiClient, assetRegistry);
 
-  // Check if running as HTTP server or stdio (default)
-  // Default is stdio for MCP clients (npx, Cursor, Claude Desktop, etc.)
-  const useHttp = process.argv.includes("--http");
+  // Start MCP server with stdio transport
+  console.log("\n" + "=".repeat(70));
+  console.log("[+] Server Ready".padStart(35).padEnd(70));
+  console.log("=".repeat(70));
+  console.log(`  Transport: stdio (for MCP clients)`);
+  console.log(`[+] ComfyUI verified at: ${COMFYUI_URL}`);
+  console.log("=".repeat(70) + "\n");
+  console.info("Starting MCP server with stdio transport (for MCP clients)");
 
-  if (!useHttp) {
-    // Stdio mode (default for MCP clients)
-    console.log("\n" + "=".repeat(70));
-    console.log("[+] Server Ready".padStart(35).padEnd(70));
-    console.log("=".repeat(70));
-    console.log(`  Transport: stdio (for MCP clients)`);
-    console.log(`[+] ComfyUI verified at: ${COMFYUI_URL}`);
-    console.log("=".repeat(70) + "\n");
-    console.info("Starting MCP server with stdio transport (for MCP clients)");
-
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-  } else {
-    // For streamable-http mode, we create a NEW server+transport per session.
-    // Factory function to create a fresh server+transport for each session
-    async function createSessionServerAndTransport(sessionAssetRegistry: AssetRegistry): Promise<{
-      server: McpServer;
-      transport: StreamableHTTPServerTransport;
-    }> {
-      const sessionComfyuiClient = new ComfyUIClient(COMFYUI_URL);
-      const sessionWorkflowManager = new WorkflowManager(WORKFLOW_DIR);
-
-      const sessionServer = new McpServer({ name: "ComfyUI_MCP_Server", version: "1.0.0" }, { capabilities: {} });
-
-      registerConfigurationTools(sessionServer, sessionComfyuiClient);
-      registerWorkflowTools(sessionServer, sessionWorkflowManager, sessionComfyuiClient, sessionAssetRegistry);
-      registerAssetTools(sessionServer, sessionAssetRegistry);
-      registerWorkflowGenerationTools(
-        sessionServer,
-        sessionWorkflowManager,
-        sessionComfyuiClient,
-        sessionAssetRegistry,
-      );
-      registerRegenerateTool(sessionServer, sessionComfyuiClient, sessionAssetRegistry);
-      registerJobTools(sessionServer, sessionComfyuiClient, sessionAssetRegistry);
-
-      const sessionTransport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => randomUUID(),
-        eventStore: new InMemoryEventStore(),
-        onsessioninitialized: (sid) => {
-          console.log(`Session initialized: ${sid}`);
-          transports[sid] = { server: sessionServer, transport: sessionTransport };
-        },
-      });
-
-      // Connect server to transport BEFORE handling requests
-      await sessionServer.connect(sessionTransport);
-
-      // Clean up on close
-      sessionTransport.onclose = () => {
-        const sid = sessionTransport.sessionId;
-        if (sid && transports[sid]) {
-          console.log(`Session closed: ${sid}`);
-          delete transports[sid];
-        }
-      };
-
-      return { server: sessionServer, transport: sessionTransport };
-    }
-
-    const transports: Record<string, { server: McpServer; transport: StreamableHTTPServerTransport }> = {};
-
-    // Start HTTP server
-    const http = await import("http");
-    const httpServer = http.createServer(async (req, res) => {
-      if (req.url !== "/mcp") {
-        res.writeHead(404);
-        res.end("Not Found");
-        return;
-      }
-
-      if (req.method !== "POST" && req.method !== "GET" && req.method !== "DELETE") {
-        res.writeHead(405);
-        res.end("Method Not Allowed");
-        return;
-      }
-
-      const sessionId = req.headers["mcp-session-id"] as string | undefined;
-      console.log(`[HTTP] ${req.method} ${req.url}`);
-
-      // For POST, parse body
-      let parsedBody: unknown;
-      if (req.method === "POST") {
-        const chunks: Buffer[] = [];
-        for await (const chunk of req) {
-          chunks.push(Buffer.from(chunk));
-        }
-        const rawBody = Buffer.concat(chunks).toString("utf-8");
-        try {
-          parsedBody = rawBody.trim() ? JSON.parse(rawBody) : undefined;
-        } catch {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ jsonrpc: "2.0", error: { code: -32700, message: "Parse error" }, id: null }));
-          return;
-        }
-      }
-
-      try {
-        let session: { server: McpServer; transport: StreamableHTTPServerTransport } | undefined;
-
-        if (sessionId && transports[sessionId]) {
-          session = transports[sessionId];
-        } else if (!sessionId && isInitializeRequest(parsedBody)) {
-          session = await createSessionServerAndTransport(assetRegistry);
-        }
-
-        if (!session) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ jsonrpc: "2.0", error: { code: -32000, message: "No valid session" }, id: null }));
-          return;
-        }
-
-        await session.transport.handleRequest(req, res, parsedBody);
-      } catch (error: any) {
-        console.error("[HTTP] Error:", error);
-        if (!res.headersSent) {
-          res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ jsonrpc: "2.0", error: { code: -32603, message: error.message }, id: null }));
-        }
-      }
-    });
-
-    httpServer.listen(PORT, "127.0.0.1", () => {
-      console.info(`HTTP server listening on port ${PORT}`);
-    });
-  }
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
 }
 
 // Handle graceful shutdown

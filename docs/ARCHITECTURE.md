@@ -10,12 +10,12 @@ The server bridges MCP (Model Context Protocol) and ComfyUI, providing a standar
 
 These foundational decisions shape the entire architecture and should be understood before diving into implementation details.
 
-### Why Streamable-HTTP?
+### Why Stdio?
 
-- Better scalability than WebSocket
-- Cloud-ready (works behind load balancers)
-- Standard HTTP tooling
-- Stateless (easier to scale horizontally)
+- Simplest transport for local MCP clients (Cursor, Claude Desktop, etc.)
+- No port management or network configuration
+- No authentication needed (local process)
+- MCP clients manage the server lifecycle automatically
 
 ### Why Stable Asset Identity?
 

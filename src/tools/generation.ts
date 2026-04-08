@@ -75,9 +75,6 @@ export function registerWorkflowGenerationTools(
           const returnInlinePreview = args.return_inline_preview || false;
           delete args.return_inline_preview;
 
-          // Build defaults from defaultsManager
-          const namespace = _determineNamespace(workflow.workflow_id);
-
           // Type coerce provided args
           const coercedArgs = _coerceParams(args, workflow.parameters);
 
@@ -340,10 +337,4 @@ function _coerceValue(value: any, annotation: string): any {
     default:
       return value;
   }
-}
-
-function _determineNamespace(workflowId: string): "image" | "audio" | "video" {
-  if (workflowId === "generate_song") return "audio";
-  if (workflowId === "generate_video") return "video";
-  return "image";
 }
