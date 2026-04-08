@@ -1,6 +1,6 @@
 # comfyui-mcp-server-node
 
-_This is a node.js version of Joe Norton's python project (https://github.com/joenorton/comfyui-mcp-server)._
+_This is improved node.js version of Joe Norton's python project (https://github.com/joenorton/comfyui-mcp-server)._
 
 A lightweight MCP (Model Context Protocol) server that bridges AI agents (like Cursor, Claude, etc.) with a local ComfyUI instance. It enables AI agents to generate and iteratively refine images, audio, and video through conversational tool calls.
 
@@ -166,6 +166,21 @@ comfyui-mcp-server-node/
 - image processing: Pillow => sharp
 - http: requests => axios
 - entry point: server.py => dist/server.js
+
+## Functional changes
+
+### New features
+
+- `list_checkpoint_models` tool
+- `list_unet_models` tool
+- `list_unet_gguf_models` tool
+
+### Removed features
+
+- `list_models` tool
+- publish system (caused confusion for AI agents; use custom output node instead)
+- default parameters (caused confusion for AI agents; use regular PARAM\_\* instead)
+- output folder setting (use custom output node instead; for example: https://gist.github.com/kevinjwesley-Collab/a548ee5e6244ebf905f0669e1d7d4958)
 
 ## License
 

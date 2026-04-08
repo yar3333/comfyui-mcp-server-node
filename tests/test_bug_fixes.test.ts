@@ -1,5 +1,4 @@
 import { WorkflowManager } from "../src/managers/workflow_manager";
-import { DefaultsManager } from "../src/managers/defaults_manager";
 import { createTempDir, cleanupTempDir, createMockWorkflowFile, createMockWorkflowData } from "./conftest";
 
 describe("Bug Fixes and Edge Cases", () => {
@@ -50,11 +49,7 @@ describe("Bug Fixes and Edge Cases", () => {
       const manager = new WorkflowManager(tempDir);
       const workflows = manager.listWorkflows();
 
-      const rendered = manager.renderWorkflow(
-        workflows[0].workflow_id,
-        { cfg: "7.5" },
-        {},
-      );
+      const rendered = manager.renderWorkflow(workflows[0].workflow_id, { cfg: "7.5" }, {});
 
       expect(rendered!["5"].inputs.cfg).toBe(7.5);
       expect(typeof rendered!["5"].inputs.cfg).toBe("number");
@@ -81,11 +76,7 @@ describe("Bug Fixes and Edge Cases", () => {
       const promptParam = workflows[0].parameters.find((p) => p.name === "prompt");
       expect(promptParam?.bindings.length).toBe(2);
 
-      const rendered = manager.renderWorkflow(
-        workflows[0].workflow_id,
-        { prompt: "shared prompt" },
-        {},
-      );
+      const rendered = manager.renderWorkflow(workflows[0].workflow_id, { prompt: "shared prompt" }, {});
 
       expect(rendered!["3"].inputs.text).toBe("shared prompt");
       expect(rendered!["6"].inputs.text).toBe("shared prompt");
