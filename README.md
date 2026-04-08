@@ -167,6 +167,10 @@ comfyui-mcp-server-node/
 - remove default parameters (caused confusion for AI agents; use regular PARAM\_\* instead)
 - remove output folder setting (use custom output node instead; for example: https://gist.github.com/kevinjwesley-Collab/a548ee5e6244ebf905f0669e1d7d4958)
 
+### v1.x.x
+
+- add `wait_for_job` tool
+
 ## License
 
 MIT
