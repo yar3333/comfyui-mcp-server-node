@@ -159,28 +159,17 @@ comfyui-mcp-server-node/
 └── README.md
 ```
 
-## Changes related to node.js implementation (in comparing to original python implementation)
+## Changelog
 
-- base mcp library: mcp (Python) => @modelcontextprotocol/sdk
-- data validation: Python typing => Zod v4 schemes
-- image processing: Pillow => sharp
-- http: requests => axios
-- entry point: server.py => dist/server.js
+### v2.x.x
 
-## Functional changes
-
-### New features
-
-- `list_checkpoint_models` tool
-- `list_unet_models` tool
-- `list_unet_gguf_models` tool
-
-### Removed features
-
-- `list_models` tool
-- publish system (caused confusion for AI agents; use custom output node instead)
-- default parameters (caused confusion for AI agents; use regular PARAM\_\* instead)
-- output folder setting (use custom output node instead; for example: https://gist.github.com/kevinjwesley-Collab/a548ee5e6244ebf905f0669e1d7d4958)
+- add `list_checkpoint_models` tool
+- add `list_unet_models` tool
+- add `list_unet_gguf_models` tool
+- remove `list_models` tool
+- remove publish system (caused confusion for AI agents; use custom output node instead)
+- remove default parameters (caused confusion for AI agents; use regular PARAM\_\* instead)
+- remove output folder setting (use custom output node instead; for example: https://gist.github.com/kevinjwesley-Collab/a548ee5e6244ebf905f0669e1d7d4958)
 
 ## License
 
