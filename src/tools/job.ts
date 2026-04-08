@@ -189,36 +189,31 @@ export function registerJobTools(server: McpServer, client: ComfyUIClient, asset
       const startTime = Date.now();
 
       try {
+        let lastStatus: string | null = null;
+
         while (Date.now() - startTime < maxTimeMs) {
           const queue = await client.getQueue();
           const runningJobs = queue?.queue_running || [];
           const pendingJobs = queue?.queue_pending || [];
 
           // Check if job is still in queue
+          let jobInQueue = false;
           for (const job of [...runningJobs, ...pendingJobs]) {
             if (job[1] === prompt_id) {
+              jobInQueue = true;
               const status = runningJobs.includes(job) ? "running" : "queued";
-              const elapsed = Math.floor((Date.now() - startTime) / 1000);
-              const remaining = Math.floor((maxTimeMs - (Date.now() - startTime)) / 1000);
-              return {
-                content: [
-                  {
-                    type: "text",
-                    text: JSON.stringify(
-                      {
-                        status,
-                        prompt_id,
-                        elapsed_seconds: elapsed,
-                        timeout_remaining_seconds: remaining,
-                        message: `Job still ${status}. Call wait_for_job again to continue waiting.`,
-                      },
-                      null,
-                      2,
-                    ),
-                  },
-                ],
-              };
+              lastStatus = status;
+              break;
             }
+          }
+
+          if (jobInQueue) {
+            // Job still in queue, wait and poll again
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const remaining = Math.floor((maxTimeMs - (Date.now() - startTime)) / 1000);
+            console.info(`Job ${prompt_id} still ${lastStatus}. Elapsed: ${elapsed}s, Remaining: ${remaining}s`);
+            await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+            continue;
           }
 
           // Not in queue, check history
