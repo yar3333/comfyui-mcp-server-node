@@ -1,6 +1,4 @@
-import { AssetRecord } from "../models/asset";
 import { AssetRegistry } from "../managers/asset_registry";
-import { ComfyUIClient } from "../comfyui_client";
 import axios from "axios";
 import { encodePreviewForMcp } from "../asset_processor";
 

@@ -421,16 +421,9 @@ export class WorkflowManager {
     return Array.from(preferences);
   }
 
-  private _determineNamespace(workflowId: string): string {
-    if (workflowId === "generate_song") return "audio";
-    if (workflowId === "generate_video") return "video";
-    return "image";
-  }
-
   public renderWorkflow(
     workflowId: string,
     parameterValues: Record<string, any>,
-    defaults: Record<string, any>,
     constrainedOverrides: Record<string, any> = {},
   ): Record<string, any> | null {
     const toolDef = this.getWorkflow(workflowId);
@@ -444,19 +437,9 @@ export class WorkflowManager {
     // Deep clone the template
     const workflow = JSON.parse(JSON.stringify(toolDef.template));
 
-    // Determine namespace
-    const namespace = this._determineNamespace(workflowId);
-
     // Apply parameter values
     for (const param of toolDef.parameters) {
       let value = parameterValues[param.name];
-
-      // Fall back to defaults from defaults manager
-      if (value === undefined || value === null) {
-        if (param.name in defaults) {
-          value = defaults[param.name];
-        }
-      }
 
       // Apply constrained overrides
       if (param.name in constrainedOverrides) {

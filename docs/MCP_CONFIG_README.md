@@ -98,15 +98,16 @@ After restarting Cursor:
 
 Once connected, you'll have access to all MCP tools. See [README.md](../README.md#api-tools) for the complete list, including:
 
+- **list_checkpoint_models**: List available checkpoint models
+- **list_unet_models**: List available UNet models (safetensors)
+- **list_unet_gguf_models**: List available UNet models (GGUF)
 - **generate_image**: Generate images using ComfyUI
 - **generate_song**: Generate audio/songs using ComfyUI
 - **regenerate**: Regenerate existing assets with parameter overrides
 - **view_image**: View generated images inline
 - **get_job**, **get_queue_status**, **cancel_job**: Job management
 - **list_assets**, **get_asset_metadata**: Asset browsing
-- **set_defaults**, **get_defaults**: Configuration management
 - **list_workflows**, **run_workflow**: Workflow execution
-- **get_publish_info**, **set_comfyui_output_root**, **publish_asset**: Publishing
 
 ## Environment Variables
 
@@ -115,7 +116,6 @@ Once connected, you'll have access to all MCP tools. See [README.md](../README.m
 | `COMFYUI_URL`               | ComfyUI instance URL        | `http://localhost:8188` |
 | `COMFY_MCP_WORKFLOW_DIR`    | Workflow directory path     | `./workflows`           |
 | `COMFY_MCP_ASSET_TTL_HOURS` | Asset time-to-live in hours | `24`                    |
-| `COMFYUI_OUTPUT_ROOT`       | ComfyUI output directory    | (auto-detect)           |
 | `COMFY_MCP_PORT`            | Server port (HTTP mode)     | `9000`                  |
 
 ## Troubleshooting

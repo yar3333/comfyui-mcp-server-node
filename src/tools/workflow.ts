@@ -1,7 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WorkflowManager } from "../managers/workflow_manager";
 import { ComfyUIClient } from "../comfyui_client";
-import { DefaultsManager } from "../managers/defaults_manager";
 import { AssetRegistry } from "../managers/asset_registry";
 import { registerAndBuildResponse } from "./helpers";
 import * as z from "zod";
@@ -10,7 +9,6 @@ export function registerWorkflowTools(
   server: McpServer,
   workflowManager: WorkflowManager,
   client: ComfyUIClient,
-  defaultsManager: DefaultsManager,
   assetRegistry: AssetRegistry,
 ): void {
   server.registerTool(
@@ -46,7 +44,6 @@ export function registerWorkflowTools(
       inputSchema: z.object({
         workflow_id: z.string().describe("ID of the workflow to run"),
         overrides: z.record(z.string(), z.any()).optional().describe("Parameter overrides as key-value pairs"),
-        options: z.record(z.string(), z.any()).optional().describe("Execution options"),
         return_inline_preview: z.boolean().optional().describe("Return inline preview of the generated asset"),
       }),
     },
@@ -60,13 +57,7 @@ export function registerWorkflowTools(
         const overrides = args.overrides || {};
         const returnInlinePreview = args.return_inline_preview || false;
 
-        const defaults: Record<string, any> = {};
-        for (const param of workflow.parameters) {
-          const defaultValue = defaultsManager.get(param.name);
-          if (defaultValue !== undefined) defaults[param.name] = defaultValue;
-        }
-
-        const renderedWorkflow = workflowManager.renderWorkflow(workflow.workflow_id, overrides, defaults, overrides);
+        const renderedWorkflow = workflowManager.renderWorkflow(workflow.workflow_id, overrides, overrides);
         if (!renderedWorkflow) {
           return {
             content: [{ type: "text", text: `Failed to render workflow: ${workflow.workflow_id}` }],

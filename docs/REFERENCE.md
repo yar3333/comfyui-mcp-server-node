@@ -10,7 +10,6 @@ Complete technical reference for ComfyUI MCP Server (Node.js/TypeScript) tools, 
 - [Asset Management Tools](#asset-management-tools)
 - [Configuration Tools](#configuration-tools)
 - [Workflow Tools](#workflow-tools)
-- [Publish Tools](#publish-tools)
 - [Parameters](#parameters)
 - [Return Values](#return-values)
 - [Error Handling](#error-handling)
@@ -551,88 +550,6 @@ z.object({});
 
 **Agent:** _Calls `list_models()` → lists models, user selects one, agent uses it in generation_
 
-### get_defaults
-
-Get current effective defaults for image, audio, and video generation.
-
-**Input Schema (Zod v4):**
-
-```typescript
-z.object({});
-```
-
-**Returns:**
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "{\n  \"image\": {\n    \"model\": \"sd_xl_base_1.0.safetensors\",\n    \"steps\": 20,\n    \"cfg\": 7.0,\n    \"sampler_name\": \"euler\",\n    \"scheduler\": \"normal\",\n    \"width\": 1024,\n    \"height\": 1024\n  },\n  \"audio\": {\n    \"steps\": 20,\n    \"cfg\": 7.0,\n    \"seconds\": 30,\n    \"lyrics_strength\": 0.7\n  },\n  \"video\": {\n    \"steps\": 20,\n    \"cfg\": 7.0,\n    \"frames\": 24\n  }\n}"
-    }
-  ]
-}
-```
-
-**Examples:**
-
-**User:** "What are the current default settings for image generation?"
-
-**Agent:** _Calls `get_defaults()` → reports current defaults (width, height, model, steps, etc.)_
-
----
-
-**User:** "Show me all the default settings"
-
-**Agent:** _Calls `get_defaults()` → shows defaults for image, audio, and video generation_
-
-### set_defaults
-
-Set runtime defaults for image, audio, and/or video generation.
-
-**Input Schema (Zod v4):**
-
-```typescript
-z.object({
-  image: z.record(z.string(), z.any()).optional(),
-  audio: z.record(z.string(), z.any()).optional(),
-  video: z.record(z.string(), z.any()).optional(),
-  persist: z.boolean().optional(),
-});
-```
-
-**Parameters:**
-
-- `image` (object): Default values for image generation
-- `audio` (object): Default values for audio generation
-- `video` (object): Default values for video generation
-- `persist` (boolean): If true, write to config file. Default: false
-
-**Returns:**
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "Defaults updated successfully\n\n{ ... }"
-    }
-  ]
-}
-```
-
-**Examples:**
-
-**User:** "Set the default image size to 1024x1024 for this session"
-
-**Agent:** _Calls `set_defaults(image={"width": 1024, "height": 1024})` → sets ephemeral defaults_
-
----
-
-**User:** "Save the SD XL model as the default image model permanently"
-
-**Agent:** _Calls `set_defaults(image={"model": "sd_xl_base_1.0.safetensors"}, persist=true)` → saves to config file_
-
 ## Workflow Tools
 
 ### list_workflows
@@ -726,182 +643,6 @@ z.object({
 
 **Agent:** _Calls `run_workflow(workflow_id="generate_image", overrides={"prompt": "a cat", "width": 1024, "height": 1024, "model": "sd_xl_base_1.0.safetensors"})` → executes workflow_
 
-## Publish Tools
-
-Tools for safely publishing ComfyUI-generated assets to web project directories with automatic compression and manifest management.
-
-**Key Concepts:**
-
-- **Session-scoped assets**: `asset_id`s are valid only for the current server session; restart invalidates them
-- **Zero-config in common cases**: Publish directory auto-detected (`public/gen`, `static/gen`, or `assets/gen`)
-- **Two modes**: Demo mode (explicit filename) and Library mode (auto-generated filename with manifest)
-- **Deterministic compression**: Images compressed using a fixed quality/downscale ladder to meet size limits
-
-### get_publish_info
-
-Get publish configuration and status information. Use this to debug configuration issues and verify setup before publishing.
-
-**Input Schema (Zod v4):**
-
-```typescript
-z.object({});
-```
-
-**Returns:**
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "{\n  \"project_root\": \"d:\\\\MyProg\\\\comfyui-mcp-server\\\\comfyui-mcp-server-node\",\n  \"project_root_method\": \"detected_package.json\",\n  \"publish_root\": \"d:\\\\MyProg\\\\comfyui-mcp-server\\\\comfyui-mcp-server-node\\\\public\\\\gen\",\n  \"comfyui_output_root\": null,\n  \"comfyui_output_method\": null,\n  \"comfyui_url\": \"http://localhost:8188\"\n}"
-    }
-  ]
-}
-```
-
-**Field Descriptions:**
-
-- `project_root`: Detected project root directory and detection method
-- `publish_root`: Publish directory path
-- `comfyui_output_root`: ComfyUI output root path (if configured)
-- `comfyui_url`: ComfyUI instance URL
-
-**Examples:**
-
-**User:** "Check if the publish system is ready to use"
-
-**Agent:** _Calls `get_publish_info()` → reports status, project root, publish directory, ComfyUI output root_
-
----
-
-**User:** "I'm getting an error about ComfyUI output root not being found"
-
-**Agent:**
-
-- _Calls `get_publish_info()` → sees status "needs_comfyui_root"_
-- _Suggests using `set_comfyui_output_root()` with the path_
-- _User provides path: "E:/comfyui-desktop/output"_
-- _Agent calls `set_comfyui_output_root("E:/comfyui-desktop/output")` → configures and persists_
-
-### set_comfyui_output_root
-
-Set ComfyUI output root directory in persistent configuration. Recommended for Comfy Desktop and nonstandard installs.
-
-**Input Schema (Zod v4):**
-
-```typescript
-z.object({
-  path: z.string(),
-});
-```
-
-**Required Parameters:**
-
-- `path` (string): Absolute or relative path to ComfyUI output directory (e.g., `"E:/comfyui-desktop/output"` or `"/opt/ComfyUI/output"`)
-
-**Returns (Success):**
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "ComfyUI output root set to: E:\\comfyui-desktop\\output"
-    }
-  ]
-}
-```
-
-**Returns (Error):**
-
-```json
-{
-  "content": [{ "type": "text", "text": "ComfyUI output root not configured" }],
-  "isError": true
-}
-```
-
-**Examples:**
-
-**User:** "Set the ComfyUI output directory to E:/comfyui-desktop/output"
-
-**Agent:** _Calls `set_comfyui_output_root(path="E:/comfyui-desktop/output")` → configures and persists_
-
-### publish_asset
-
-Publish a generated asset to a web project directory with optional compression.
-
-**Input Schema (Zod v4):**
-
-```typescript
-z.object({
-  asset_id: z.string(),
-  target_filename: z.string(),
-  manifest_key: z.string().optional(),
-  web_optimize: z.boolean().optional(),
-  max_bytes: z.number().optional(),
-  overwrite: z.boolean().optional(),
-});
-```
-
-**Required Parameters:**
-
-- `asset_id` (string): Asset ID to publish
-- `target_filename` (string): Target filename (e.g., `"hero.webp"`)
-
-**Optional Parameters:**
-
-- `manifest_key` (string): Key for manifest.json (enables library mode)
-- `web_optimize` (boolean): Optimize for web (WebP compression). Default: false
-- `max_bytes` (number): Maximum file size for web optimization
-- `overwrite` (boolean): Overwrite existing file. Default: false
-
-**Returns:**
-
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "{\n  \"success\": true,\n  \"target_path\": \"d:\\\\...\\\\public\\\\gen\\\\hero.webp\",\n  \"size\": 45678,\n  \"manifest_key\": \"hero\"\n}"
-    }
-  ]
-}
-```
-
-**Error Responses:**
-
-```json
-{
-  "content": [{ "type": "text", "text": "Asset not found: uuid-string" }],
-  "isError": true
-}
-```
-
-```json
-{
-  "content": [{ "type": "text", "text": "ComfyUI output root not configured" }],
-  "isError": true
-}
-```
-
-**Examples:**
-
-**User:** "Publish that image as hero.webp"
-
-**Agent:**
-
-- _Calls `publish_asset(asset_id="...", target_filename="hero.webp")` → publishes asset_
-
----
-
-**User:** "Publish that as hero.webp, optimize for web, and add it to the manifest with key 'hero'"
-
-**Agent:**
-
-- _Calls `publish_asset(asset_id="...", target_filename="hero.webp", manifest_key="hero", web_optimize=true)` → publishes and updates manifest_
-
 ## Parameters
 
 ### Common Parameter Types
@@ -971,14 +712,13 @@ All tools return responses in the following format:
 
 ### Common Error Messages
 
-| Error                                            | Cause                           | Solution                                     |
-| ------------------------------------------------ | ------------------------------- | -------------------------------------------- |
-| `Asset not found: ...`                           | Asset expired or invalid        | Regenerate the asset or use a valid asset_id |
-| `Workflow not found: ...`                        | Workflow file doesn't exist     | Check workflow directory and filename        |
-| `Failed to queue workflow: ...`                  | ComfyUI unavailable or error    | Ensure ComfyUI is running and accessible     |
-| `Workflow execution failed: ...`                 | ComfyUI workflow error          | Check ComfyUI logs for details               |
-| `Source path must be within ComfyUI output root` | Publish path validation failed  | Configure ComfyUI output root correctly      |
-| `Target file already exists: ...`                | File exists and overwrite=false | Use `overwrite=true` or different filename   |
+| Error                             | Cause                           | Solution                                     |
+| --------------------------------- | ------------------------------- | -------------------------------------------- |
+| `Asset not found: ...`            | Asset expired or invalid        | Regenerate the asset or use a valid asset_id |
+| `Workflow not found: ...`         | Workflow file doesn't exist     | Check workflow directory and filename        |
+| `Failed to queue workflow: ...`   | ComfyUI unavailable or error    | Ensure ComfyUI is running and accessible     |
+| `Workflow execution failed: ...`  | ComfyUI workflow error          | Check ComfyUI logs for details               |
+| `Target file already exists: ...` | File exists and overwrite=false | Use `overwrite=true` or different filename   |
 
 ### ComfyUI Connection Errors
 
@@ -1013,11 +753,3 @@ If ComfyUI is not available, the server will:
 | Quality ladder   | 70 → 55 → 40 | WebP quality levels      |
 | Max base64 chars | 100,000      | Default character budget |
 | Max dimension    | 1024px       | Default resize limit     |
-
-### Publish Limits
-
-| Limit             | Value                  | Description                     |
-| ----------------- | ---------------------- | ------------------------------- |
-| Quality ladder    | 85 → 70 → 55 → 40 → 35 | WebP optimization               |
-| Downscale factors | 1.0 → 0.75 → 0.5       | Size reduction                  |
-| Path validation   | Required               | Source and target paths checked |

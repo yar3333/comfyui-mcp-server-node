@@ -5,6 +5,8 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { InMemoryEventStore } from "@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js";
 import { randomUUID } from "crypto";
+import * as path from "path";
+import axios from "axios";
 
 function isInitializeRequest(body: unknown): boolean {
   if (Array.isArray(body)) {
@@ -15,28 +17,21 @@ function isInitializeRequest(body: unknown): boolean {
   }
   return false;
 }
-import * as path from "path";
-import * as os from "os";
-import * as fs from "fs";
-import axios from "axios";
 
 import { ComfyUIClient } from "./comfyui_client";
 import { WorkflowManager } from "./managers/workflow_manager";
-import { DefaultsManager } from "./managers/defaults_manager";
 import { AssetRegistry } from "./managers/asset_registry";
-import { PublishConfig, PublishManager } from "./managers/publish_manager";
 import { registerConfigurationTools } from "./tools/configuration";
 import { registerWorkflowTools } from "./tools/workflow";
 import { registerAssetTools } from "./tools/asset";
 import { registerWorkflowGenerationTools, registerRegenerateTool } from "./tools/generation";
 import { registerJobTools } from "./tools/job";
-import { registerPublishTools } from "./tools/publish";
 
 // Configuration
 const WORKFLOW_DIR = process.env.COMFY_MCP_WORKFLOW_DIR || path.join(__dirname, "..", "workflows");
 const ASSET_TTL_HOURS = parseInt(process.env.COMFY_MCP_ASSET_TTL_HOURS || "24", 10);
 const COMFYUI_URL = process.env.COMFYUI_URL || "http://localhost:8188";
-const COMFYUI_MAX_RETRIES = 5;
+const COMFYUI_MAX_RETRIES = 2;
 const COMFYUI_INITIAL_DELAY = 2000; // ms
 const COMFYUI_MAX_DELAY = 16000; // ms
 const COMFYUI_OUTPUT_ROOT = process.env.COMFYUI_OUTPUT_ROOT || null;
@@ -134,33 +129,9 @@ async function main(): Promise<void> {
   }
 
   // Initialize global instances
-  const comfyuiClient = await ComfyUIClient.create(COMFYUI_URL);
+  const comfyuiClient = new ComfyUIClient(COMFYUI_URL);
   const workflowManager = new WorkflowManager(WORKFLOW_DIR);
-  const defaultsManager = new DefaultsManager(comfyuiClient);
   const assetRegistry = new AssetRegistry(ASSET_TTL_HOURS, COMFYUI_URL);
-
-  // Initialize defaults
-  await defaultsManager.initialize();
-
-  // Publish manager
-  let publishManager: PublishManager | null = null;
-  try {
-    const publishConfig = new PublishConfig(COMFYUI_OUTPUT_ROOT, COMFYUI_URL);
-    publishManager = new PublishManager(publishConfig);
-    console.info(
-      `Publish manager initialized with project_root=${publishConfig.projectRoot} (method: ${publishConfig.projectRootMethod})`,
-    );
-    console.info(`Publish root: ${publishConfig.publishRoot}`);
-    if (publishConfig.comfyuiOutputRoot) {
-      console.info(
-        `ComfyUI output root: ${publishConfig.comfyuiOutputRoot} (method: ${publishConfig.comfyuiOutputMethod})`,
-      );
-    } else {
-      console.info(`ComfyUI output root: not configured (tried ${publishConfig.comfyuiTriedPaths.length} paths)`);
-    }
-  } catch (error) {
-    console.warn(`Failed to initialize publish manager: ${error}. Publishing features may be unavailable.`);
-  }
 
   // Create MCP server
   const server = new McpServer(
@@ -174,18 +145,12 @@ async function main(): Promise<void> {
   );
 
   // Register all MCP tools
-  registerConfigurationTools(server, comfyuiClient, defaultsManager);
-  registerWorkflowTools(server, workflowManager, comfyuiClient, defaultsManager, assetRegistry);
+  registerConfigurationTools(server, comfyuiClient);
+  registerWorkflowTools(server, workflowManager, comfyuiClient, assetRegistry);
   registerAssetTools(server, assetRegistry);
-  registerWorkflowGenerationTools(server, workflowManager, comfyuiClient, defaultsManager, assetRegistry);
+  registerWorkflowGenerationTools(server, workflowManager, comfyuiClient, assetRegistry);
   registerRegenerateTool(server, comfyuiClient, assetRegistry);
   registerJobTools(server, comfyuiClient, assetRegistry);
-
-  if (publishManager) {
-    registerPublishTools(server, assetRegistry, publishManager);
-  } else {
-    console.error("Publish manager not available - publish tools will not be registered");
-  }
 
   // Check if running as HTTP server or stdio (default)
   // Default is stdio for MCP clients (npx, Cursor, Claude Desktop, etc.)
@@ -210,31 +175,22 @@ async function main(): Promise<void> {
       server: McpServer;
       transport: StreamableHTTPServerTransport;
     }> {
-      const sessionComfyuiClient = await ComfyUIClient.create(COMFYUI_URL);
+      const sessionComfyuiClient = new ComfyUIClient(COMFYUI_URL);
       const sessionWorkflowManager = new WorkflowManager(WORKFLOW_DIR);
-      const sessionDefaultsManager = new DefaultsManager(sessionComfyuiClient);
 
       const sessionServer = new McpServer({ name: "ComfyUI_MCP_Server", version: "1.0.0" }, { capabilities: {} });
 
-      registerConfigurationTools(sessionServer, sessionComfyuiClient, sessionDefaultsManager);
-      registerWorkflowTools(
-        sessionServer,
-        sessionWorkflowManager,
-        sessionComfyuiClient,
-        sessionDefaultsManager,
-        sessionAssetRegistry,
-      );
+      registerConfigurationTools(sessionServer, sessionComfyuiClient);
+      registerWorkflowTools(sessionServer, sessionWorkflowManager, sessionComfyuiClient, sessionAssetRegistry);
       registerAssetTools(sessionServer, sessionAssetRegistry);
       registerWorkflowGenerationTools(
         sessionServer,
         sessionWorkflowManager,
         sessionComfyuiClient,
-        sessionDefaultsManager,
         sessionAssetRegistry,
       );
       registerRegenerateTool(sessionServer, sessionComfyuiClient, sessionAssetRegistry);
       registerJobTools(sessionServer, sessionComfyuiClient, sessionAssetRegistry);
-      if (publishManager) registerPublishTools(sessionServer, sessionAssetRegistry, publishManager);
 
       const sessionTransport = new StreamableHTTPServerTransport({
         sessionIdGenerator: () => randomUUID(),

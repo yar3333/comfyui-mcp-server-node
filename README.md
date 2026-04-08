@@ -13,8 +13,7 @@ A lightweight MCP (Model Context Protocol) server that bridges AI agents (like C
 - **Workflow System**: PARAM\_\* placeholder system for easy workflow customization
 - **Asset Management**: Track, view, and manage generated assets
 - **Job Management**: Monitor queue, check job status, cancel jobs
-- **Publish System**: Publish assets to web project directories with optimization
-- **Configuration**: Manage defaults and model settings
+- **Configuration**: List available models
 
 ## Quick Start
 
@@ -29,8 +28,7 @@ No local clone needed. Add to your MCP client configuration (Cursor, Claude, etc
   "env": {
     "COMFYUI_URL": "http://localhost:8188",
     "COMFY_MCP_WORKFLOW_DIR": "/path/to/workflows",
-    "COMFY_MCP_ASSET_TTL_HOURS": "24",
-    "COMFYUI_OUTPUT_ROOT": "/path/to/output"
+    "COMFY_MCP_ASSET_TTL_HOURS": "24"
   }
 }
 ```
@@ -59,13 +57,12 @@ Then start:
 
 ### Environment Variables
 
-| Variable                    | Description                   | Default                 |
-| --------------------------- | ----------------------------- | ----------------------- |
-| `COMFYUI_URL`               | ComfyUI base URL              | `http://localhost:8188` |
-| `COMFY_MCP_WORKFLOW_DIR`    | Path to workflow directory    | `./workflows`           |
-| `COMFY_MCP_ASSET_TTL_HOURS` | Asset time-to-live in hours   | `24`                    |
-| `COMFYUI_OUTPUT_ROOT`       | ComfyUI output directory path | _(auto-detect)_         |
-| `COMFY_MCP_PORT`            | Server port (HTTP mode)       | `9000`                  |
+| Variable                    | Description                 | Default                 |
+| --------------------------- | --------------------------- | ----------------------- |
+| `COMFYUI_URL`               | ComfyUI base URL            | `http://localhost:8188` |
+| `COMFY_MCP_WORKFLOW_DIR`    | Path to workflow directory  | `./workflows`           |
+| `COMFY_MCP_ASSET_TTL_HOURS` | Asset time-to-live in hours | `24`                    |
+| `COMFY_MCP_PORT`            | Server port (HTTP mode)     | `9000`                  |
 
 ## API Tools
 
@@ -95,11 +92,11 @@ Then start:
 
 ### Configuration Tools
 
-| Tool           | Description                                   |
-| -------------- | --------------------------------------------- |
-| `list_models`  | List available checkpoint models from ComfyUI |
-| `get_defaults` | Get current default values                    |
-| `set_defaults` | Set default values for generation parameters  |
+| Tool                     | Description                                                 |
+| ------------------------ | ----------------------------------------------------------- |
+| `list_checkpoint_models` | List available checkpoint models from ComfyUI               |
+| `list_unet_models`       | List available UNet models in standard (safetensors) format |
+| `list_unet_gguf_models`  | List available UNet models in GGUF format                   |
 
 ### Workflow Tools
 
@@ -107,14 +104,6 @@ Then start:
 | ---------------- | -------------------------------------------------- |
 | `list_workflows` | List available workflows in the workflow directory |
 | `run_workflow`   | Run a specific workflow with parameter overrides   |
-
-### Publish Tools
-
-| Tool                      | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `get_publish_info`        | Get information about the publish system configuration |
-| `set_comfyui_output_root` | Set the ComfyUI output directory path                  |
-| `publish_asset`           | Publish a generated asset to a web project directory   |
 
 ## Workflow System
 
@@ -155,17 +144,14 @@ comfyui-mcp-server-node/
 │   │   └── workflow.ts
 │   ├── managers/                # Manager classes
 │   │   ├── workflow_manager.ts
-│   │   ├── defaults_manager.ts
-│   │   ├── asset_registry.ts
-│   │   └── publish_manager.ts
+│   │   └── asset_registry.ts
 │   └── tools/                   # MCP tool implementations
 │       ├── helpers.ts
 │       ├── generation.ts
 │       ├── asset.ts
 │       ├── job.ts
 │       ├── configuration.ts
-│       ├── workflow.ts
-│       └── publish.ts
+│       └── workflow.ts
 ├── workflows/                   # Workflow JSON files
 ├── test_client.ts               # Test client
 ├── package.json

@@ -1,7 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ComfyUIClient } from "../comfyui_client";
 import { WorkflowManager } from "../managers/workflow_manager";
-import { DefaultsManager } from "../managers/defaults_manager";
 import { AssetRegistry } from "../managers/asset_registry";
 import { registerAndBuildResponse } from "./helpers";
 import * as z from "zod";
@@ -35,7 +34,6 @@ export function registerWorkflowGenerationTools(
   server: McpServer,
   workflowManager: WorkflowManager,
   client: ComfyUIClient,
-  defaultsManager: DefaultsManager,
   assetRegistry: AssetRegistry,
 ): void {
   const workflows = workflowManager.listWorkflows();
@@ -79,46 +77,16 @@ export function registerWorkflowGenerationTools(
 
           // Build defaults from defaultsManager
           const namespace = _determineNamespace(workflow.workflow_id);
-          const defaults: Record<string, any> = {};
-          for (const param of workflow.parameters) {
-            const defaultValue = defaultsManager.getDefault(namespace, param.name);
-            if (defaultValue !== null && defaultValue !== undefined) {
-              defaults[param.name] = defaultValue;
-            }
-          }
 
           // Type coerce provided args
           const coercedArgs = _coerceParams(args, workflow.parameters);
 
-          const renderedWorkflow = workflowManager.renderWorkflow(workflow.workflow_id, coercedArgs, defaults);
+          const renderedWorkflow = workflowManager.renderWorkflow(workflow.workflow_id, coercedArgs);
           if (!renderedWorkflow) {
             return {
               content: [{ type: "text", text: `Failed to render workflow: ${workflow.workflow_id}` }],
               isError: true,
             };
-          }
-
-          // Validate model if present
-          const modelName = renderedWorkflowModel(renderedWorkflow);
-          if (modelName) {
-            const isValid = await defaultsManager.validateModel(modelName);
-            if (!isValid) {
-              // Try to refresh and revalidate
-              await defaultsManager.refreshModelSet();
-              const retryValid = await defaultsManager.validateModel(modelName);
-              if (!retryValid) {
-                const models = await client.getAvailableModels();
-                return {
-                  content: [
-                    {
-                      type: "text",
-                      text: `Model '${modelName}' not found in ComfyUI. Available models: ${models.join(", ") || "none"}. Use set_defaults to configure a valid model.`,
-                    },
-                  ],
-                  isError: true,
-                };
-              }
-            }
           }
 
           const result = await client.runCustomWorkflow(renderedWorkflow, workflow.output_preferences);
@@ -333,25 +301,6 @@ function updateSeedInKSampler(workflow: Record<string, any>, seed: number): void
       }
     }
   }
-}
-
-/**
- * Extract model name from rendered workflow.
- */
-function renderedWorkflowModel(workflow: Record<string, any>): string | null {
-  const modelKeys = ["ckpt_name", "model", "unet_name"];
-
-  for (const [, nodeData] of Object.entries(workflow)) {
-    if (typeof nodeData !== "object" || !nodeData.inputs) continue;
-
-    for (const key of modelKeys) {
-      if (key in nodeData.inputs && typeof nodeData.inputs[key] === "string") {
-        return nodeData.inputs[key];
-      }
-    }
-  }
-
-  return null;
 }
 
 /**

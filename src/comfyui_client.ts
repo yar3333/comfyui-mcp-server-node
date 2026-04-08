@@ -30,35 +30,25 @@ interface WorkflowResult {
 }
 
 export class ComfyUIClient {
-  private client: AxiosInstance;
+  private readonly client: AxiosInstance;
 
-  static async create(baseUrl: string = "http://localhost:8188") {
-    const comfyClient = new ComfyUIClient(baseUrl);
-    await comfyClient.getAvailableModels();
-    return comfyClient;
-  }
-
-  private constructor(baseUrl: string) {
+  constructor(baseUrl: string) {
     this.client = axios.create({
       baseURL: baseUrl,
       timeout: 30000,
     });
   }
 
-  async getAvailableModels(): Promise<string[]> {
+  async getAvailableCheckpointModels(): Promise<string[]> {
     try {
-      const [checkpointResponse, unetResponse, unetGgufResponse] = await Promise.allSettled([
-        this.client.get("/object_info/CheckpointLoaderSimple"),
-        this.client.get("/object_info/UNETLoader"),
-        this.client.get("/object_info/UnetLoaderGGUF"),
-      ]);
+      const response: any = await this.client.get("/object_info/CheckpointLoaderSimple");
 
       const models: string[] = [];
 
       // Extract checkpoint models
-      if (checkpointResponse.status === "fulfilled") {
+      if (response.status === "fulfilled") {
         try {
-          const data = checkpointResponse.value.data;
+          const data = response.value.data;
           const checkpointInfo = data["CheckpointLoaderSimple"];
           if (checkpointInfo?.input?.required?.ckpt_name) {
             const ckptNameInfo = checkpointInfo.input.required.ckpt_name;
@@ -70,10 +60,29 @@ export class ComfyUIClient {
         }
       }
 
+      if (models.length > 0) {
+        console.info("Available models:", models);
+      } else {
+        console.warn("No models found");
+      }
+
+      return models;
+    } catch (error) {
+      console.warn("Error fetching models:", error);
+      return [];
+    }
+  }
+
+  async getAvailableUnetModels(): Promise<string[]> {
+    try {
+      const response: any = await this.client.get("/object_info/UNETLoader");
+
+      const models: string[] = [];
+
       // Extract UNet/diffusion models
-      if (unetResponse.status === "fulfilled") {
+      if (response.status === "fulfilled") {
         try {
-          const data = unetResponse.value.data;
+          const data = response.value.data;
           const unetInfo = data["UNETLoader"];
           if (unetInfo?.input?.required?.unet_name) {
             const unetNameInfo = unetInfo.input.required.unet_name;
@@ -85,10 +94,28 @@ export class ComfyUIClient {
         }
       }
 
+      if (models.length > 0) {
+        console.info("Available models:", models);
+      } else {
+        console.warn("No models found");
+      }
+
+      return models;
+    } catch (error) {
+      console.warn("Error fetching models:", error);
+      return [];
+    }
+  }
+  async getAvailableUnetGgufModels(): Promise<string[]> {
+    try {
+      const response: any = await this.client.get("/object_info/UnetLoaderGGUF");
+
+      const models: string[] = [];
+
       // Extract UNet/diffusion models
-      if (unetGgufResponse.status === "fulfilled") {
+      if (response.status === "fulfilled") {
         try {
-          const data = unetGgufResponse.value.data;
+          const data = response.value.data;
           const unetGgufInfo = data["UnetLoaderGGUF"];
           if (unetGgufInfo?.input?.required?.unet_name) {
             const unetNameInfo = unetGgufInfo.input.required.unet_name;

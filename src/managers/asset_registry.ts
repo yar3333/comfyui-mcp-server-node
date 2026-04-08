@@ -1,19 +1,19 @@
-import { v4 as uuidv4 } from 'uuid';
-import { AssetRecord } from '../models/asset';
+import { v4 as uuidv4 } from "uuid";
+import { AssetRecord } from "../models/asset";
 
 export class AssetRegistry {
   private ttlHours: number;
   private comfyuiBaseUrl: string;
   private assets: Map<string, AssetRecord> = new Map();
-  
+
   // Indexes for O(1) lookups
   private byFilename: Map<string, Set<string>> = new Map();
   private byWorkflow: Map<string, Set<string>> = new Map();
   private bySession: Map<string, Set<string>> = new Map();
-  
+
   private lock: Promise<void> = Promise.resolve();
 
-  constructor(ttlHours: number = 24, comfyuiBaseUrl: string = 'http://localhost:8188') {
+  constructor(ttlHours: number, comfyuiBaseUrl: string) {
     this.ttlHours = ttlHours;
     this.comfyuiBaseUrl = comfyuiBaseUrl;
   }
@@ -27,7 +27,7 @@ export class AssetRegistry {
     assetMetadata: Record<string, any>,
     comfyHistory: Record<string, any> | null,
     submittedWorkflow: Record<string, any> | null,
-    sessionId: string | null = null
+    sessionId: string | null = null,
   ): AssetRecord {
     const assetId = uuidv4();
     const now = new Date();
@@ -79,7 +79,7 @@ export class AssetRegistry {
   public getAsset(assetId: string): AssetRecord | null {
     const asset = this.assets.get(assetId);
     if (!asset) return null;
-    
+
     // Check expiration
     if (new Date() > asset.expires_at) {
       this.assets.delete(assetId);
@@ -99,11 +99,7 @@ export class AssetRegistry {
     return this.getAsset(latestAssetId);
   }
 
-  public listAssets(
-    limit: number = 100,
-    workflowId?: string | null,
-    sessionId?: string | null
-  ): AssetRecord[] {
+  public listAssets(limit: number = 100, workflowId?: string | null, sessionId?: string | null): AssetRecord[] {
     let assetIds: Set<string>;
 
     if (workflowId) {
@@ -115,14 +111,14 @@ export class AssetRegistry {
     }
 
     // Filter expired assets
-    const validAssetIds = Array.from(assetIds).filter(id => {
+    const validAssetIds = Array.from(assetIds).filter((id) => {
       const asset = this.assets.get(id);
       return asset && new Date() <= asset.expires_at;
     });
 
     // Sort by creation time (newest first) and limit
     const sorted = validAssetIds
-      .map(id => this.assets.get(id)!)
+      .map((id) => this.assets.get(id)!)
       .sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
       .slice(0, limit);
 
@@ -136,7 +132,7 @@ export class AssetRegistry {
     for (const [assetId, asset] of this.assets.entries()) {
       if (now > asset.expires_at) {
         this.assets.delete(assetId);
-        
+
         // Remove from indexes
         const stableKey = this._getStableKey(asset.filename, asset.subfolder, asset.folder_type);
         this.byFilename.get(stableKey)?.delete(assetId);
@@ -144,7 +140,7 @@ export class AssetRegistry {
         if (asset.session_id) {
           this.bySession.get(asset.session_id)?.delete(assetId);
         }
-        
+
         deleted++;
       }
     }
@@ -154,8 +150,8 @@ export class AssetRegistry {
 
   public getAssetUrl(asset: AssetRecord): string {
     const encodedFilename = encodeURIComponent(asset.filename);
-    const encodedSubfolder = asset.subfolder ? encodeURIComponent(asset.subfolder) : '';
-    
+    const encodedSubfolder = asset.subfolder ? encodeURIComponent(asset.subfolder) : "";
+
     if (encodedSubfolder) {
       return `${this.comfyuiBaseUrl}/view?filename=${encodedFilename}&subfolder=${encodedSubfolder}&type=${asset.folder_type}`;
     }
@@ -163,6 +159,6 @@ export class AssetRegistry {
   }
 
   private _getStableKey(filename: string, subfolder: string, folderType: string): string {
-    return `${folderType}/${subfolder || ''}/${filename}`;
+    return `${folderType}/${subfolder || ""}/${filename}`;
   }
 }
